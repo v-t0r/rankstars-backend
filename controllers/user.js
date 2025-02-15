@@ -132,13 +132,19 @@ exports.getListsFromUser = async (req, res, next) => {
         const user = await User.findById(userId, ["lists"]).populate({
             path: "lists",
             options: { sort: {updatedAt: -1}},
-            populate: {
-                path: "reviews",
-                populate: {
+            populate: [
+                {
+                    path: "reviews",
+                    populate: {
+                        path: "author",
+                        select: "_id username"
+                    }
+                },
+                {
                     path: "author",
                     select: "_id username"
                 }
-            }
+            ]
         })
 
         if(!user){
