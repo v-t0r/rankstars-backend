@@ -22,7 +22,7 @@ const listSchema = new Schema({
     }],
     description: {
         type: String,
-        required: true
+        default: ""
     },
     comments: [{
         type: Schema.Types.ObjectId,
