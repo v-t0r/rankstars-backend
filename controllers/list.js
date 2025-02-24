@@ -199,11 +199,11 @@ exports.removeReviewFromList = async (req, res, next) => {
         list.reviews.pull(reviewId)
         review.lists.pull(listId)
 
-        await list.save()
-        await review.save()
+        await list.save({session})
+        await review.save({session})
 
-        await session.commitTransaction({session})
-        await session.endSession({session})
+        await session.commitTransaction()
+        await session.endSession()
 
         res.status(200).json({message: "Review deleted from list successfully."})
 
@@ -233,10 +233,13 @@ exports.patchList = async (req, res, next) => {
 
     const listId = req.params.listId
 
+    const session = await mongoose.startSession()
+    session.startTransaction()
+
     try{
         for ([key, value] of Object.entries(req.body)){
-            if(!["title", "description"].includes(key)){
-                const error = new Error(`Invalid '${key}' key. Only title and description can be patched.`)
+            if(!["title", "description", "reviews"].includes(key)){
+                const error = new Error(`Invalid '${key}' key. Only title and description or reviews can be patched.`)
                 error.statusCode = 422
                 throw error
             }
@@ -254,15 +257,42 @@ exports.patchList = async (req, res, next) => {
             error.statusCode = 403
             throw error
         }
-
-        const updatedList = await List.findOneAndUpdate({_id: listId}, req.body, {new: true})
         
+        const oldReviewList = [...list.reviews]
+
+        const newReviewList = req.body.reviews
+
+        const removedReviews = oldReviewList.filter(review => !newReviewList.includes(review.toString()))
+
+        for(const reviewId of removedReviews){
+            const review  = await Review.findById(reviewId)
+            if(review){
+                review.lists.pull(listId)
+                review.save({session})
+            }
+        }
+
+        const updatedList = await List.findOneAndUpdate(
+            {_id: listId}, 
+            {
+                title: req.body.title, 
+                description: req.body.description,
+                reviews: req.body.reviews
+            }, 
+            {new: true}
+        )
+
+        await session.commitTransaction()
+        await session.endSession()
+
         res.status(200).json({
             message: `List _id:${listId} updated successfully.`,
             list: updatedList
         })
     }
     catch(error){
+        await session.abortTransaction()
+        await session.endSession()
         next(error)
     }
 }

@@ -9,14 +9,12 @@ router.get("/lists/:listId", listController.getList)
 
 //POST list
 router.post("/lists", isAuth, [
-    body("title", "Invalid name.").notEmpty(),
-    body("description", "Description can not be empty").notEmpty()
+    body("title", "Invalid title.").notEmpty(),
     ], listController.createList)
 
 //PATCH list
 router.patch("/lists/:listId", isAuth, [
-    body("title", "Invalid name.").optional().notEmpty(),
-    body("description", "Description can not be empty").optional().notEmpty()
+    body("title", "Invalid name.").optional().trim().notEmpty(),
     ], listController.patchList)
 
 //DELETE list
@@ -36,6 +34,5 @@ router.post("/lists/:listId/followers", isAuth, listController.followList)
 
 //DELETE followers
 router.delete("/lists/:listId/followers", isAuth, listController.unfollowList)
-
 
 module.exports = router
