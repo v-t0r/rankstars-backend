@@ -7,8 +7,24 @@ const List = require("../models/list")
 
 exports.getList = async (req, res, next) => {
     const listId = req.params.listId
-    
+
+    //ordenacao
+    const {sortBy = null, order = null} = req.query
+
     try{
+
+        if(!["updatedAt", "createdAt", "rating", null].includes(sortBy)){
+            const error = new Error("Invalid sort field")
+            error.statusCode = 400
+            throw error
+        }
+
+        if(!["-1", "1", null].includes(order)){
+            const error = new Error("Invalid order field")
+            error.statusCode = 400
+            throw error
+        }
+
         const list = await List.findById(listId).populate([
             {
                 path: "author",
@@ -16,6 +32,7 @@ exports.getList = async (req, res, next) => {
             },
             {
                 path: "reviews",
+                ...(sortBy ? {options: {sort: {[sortBy]: +order}}} : {} ),
                 populate : {
                     path: "author",
                     select: "_id username" 
