@@ -128,10 +128,24 @@ exports.getReviewsFromUser = async (req, res, next) => {
 exports.getListsFromUser = async (req, res, next) => {
     const userId = req.params.userId
 
+    const {sortBy = "createdAt", order = "-1"} = req.query
+
     try{
+        if(!["updatedAt", "createdAt"].includes(sortBy)){
+            const error = new Error("Invalid sort field")
+            error.statusCode = 400
+            throw error
+        }
+
+        if(!["-1", "1"].includes(order)){
+            const error = new Error("Invalid order field")
+            error.statusCode = 400
+            throw error
+        }
+
         const user = await User.findById(userId, ["lists"]).populate({
             path: "lists",
-            options: { sort: {updatedAt: -1}},
+            options: { sort: {[sortBy]: +order}},
             populate: [
                 {
                     path: "reviews",

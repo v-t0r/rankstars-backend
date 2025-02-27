@@ -29,7 +29,7 @@ const listSchema = new Schema({
         ref: "Comment",
         default: []
     }]
-})
+}, {timestamps: true})
 
 /** This middleware hook makes shure that when a list is deleted, 
  * all references to it in users and reviews  is also deleted.
@@ -95,10 +95,6 @@ listSchema.pre("findOneAndDelete", async function (next){
     }
 
 })
-
-
-
-
 
 const List = model("List", listSchema)
 module.exports = List
