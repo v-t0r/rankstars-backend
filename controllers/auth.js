@@ -76,7 +76,6 @@ exports.loginUser = async (req, res, next) => { //used to login users
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "None",
-                // domain: process.env.API_URL,
                 path: "/",
                 maxAge: 60*60*1000 // dura 1 hora
             })
@@ -93,8 +92,9 @@ exports.loginUser = async (req, res, next) => { //used to login users
 exports.logoutUser = async (req, res, next) => {
     res.clearCookie("token", {
         httpOnly: true,
-        secure: true,
-        sameSite: "none"
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "None",
+        path: "/",
     })
 
     res.status(200).json({message: "User logged out."})
