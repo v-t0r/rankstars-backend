@@ -13,6 +13,8 @@ exports.getAuthenticatedUser = async(req, res, next) => {
         "reviews",
         "favReviews",
         "lists",
+        "likedReviews",
+        "followingLists",
         "profilePicUrl",
         "bannerPicUrl",
         "status",
