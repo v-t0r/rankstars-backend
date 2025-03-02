@@ -70,7 +70,17 @@ exports.loginUser = async (req, res, next) => { //used to login users
             {expiresIn: "1h"}
         )
 
-        res.status(200).json({token, userId: user._id.toString()})
+        res
+            .status(200)
+            .cookie("token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "None",
+                // domain: process.env.API_URL,
+                path: "/",
+                maxAge: 60*60*1000 // dura 1 hora
+            })
+            .json({userId: user._id.toString()})
 
     }catch(error){
         if(!error.statusCode){

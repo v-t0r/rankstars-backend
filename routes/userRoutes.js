@@ -6,6 +6,9 @@ const isAuth = require("../util/auth")
 //GET users
 router.get("/users", userController.getUsers)
 
+//GET logged user
+router.get("/users/myuser", isAuth, userController.getAuthenticatedUser)
+
 //GET one user
 router.get("/users/:userId", userController.getUser)
 

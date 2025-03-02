@@ -2,6 +2,31 @@ const mongoose = require("mongoose")
 
 const User = require("../models/user")
 
+exports.getAuthenticatedUser = async(req, res, next) => {
+    const userId =  req.userId
+
+    fields = [
+        "_id", 
+        "username", 
+        "followers",
+        "following",
+        "reviews",
+        "favReviews",
+        "lists",
+        "profilePicUrl",
+        "bannerPicUrl",
+        "status",
+        "createdAt"
+    ]
+    
+    try{
+        const user = await User.findById(userId, fields)
+        res.status(200).json({user})
+    }catch(e){
+        next(error)
+    }
+}
+
 exports.getUsers = async (req, res, next) => {
     const compact = req.query.compact
     

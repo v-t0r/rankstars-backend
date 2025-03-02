@@ -40,7 +40,7 @@ exports.createReview = async (req, res, next) => {
     }
 
     let imagesUrls
-    if(req.files.length > 0){ //verificando as imagens
+    if(req.files?.length > 0){ //verificando as imagens
         imagesUrls = req.files.map(image => image.path)
     }else{
         imagesUrls = ["images/default-review-pic.jpg"]
