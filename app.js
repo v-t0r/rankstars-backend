@@ -57,14 +57,14 @@ app.use(multer({
 )
 
 //minhas rotas
-app.use(authRoutes)
-app.use(userRoutes)
-app.use(reviewRoutes)
-app.use(listRoutes)
-app.use(commentRoutes)
+app.use("/api", authRoutes)
+app.use("/api", userRoutes)
+app.use("/api", reviewRoutes)
+app.use("/api", listRoutes)
+app.use("/api", commentRoutes)
 
-app.use((req, res, next) => {
-    res.json("Hello, world!")
+app.use("/api", (req, res, next) => {
+    res.json("Hello, world! Welcome to the RankStars API!")
 })
 
 //rota padrão para erro
