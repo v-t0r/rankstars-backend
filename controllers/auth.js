@@ -89,7 +89,7 @@ exports.loginUser = async (req, res, next) => { //used to login users
     }
 }
 
-exports.logoutUser = async (req, res, next) => {
+exports.logoutUser = (req, res, next) => {
     res.clearCookie("token", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -98,4 +98,28 @@ exports.logoutUser = async (req, res, next) => {
     })
 
     res.status(200).json({message: "User logged out."})
+}
+
+exports.loginStatus = (req, res, next) => {
+    const token = req.cookies.token
+
+    if(!token){
+        return res.status(200).json({authenticated: false})
+    }
+
+    try{
+        decodedToken = jwt.verify(token, `${process.env.JSON_WEB_TOKEN_PRIVATE_KEY}`)
+    }catch(error){
+        error.statusCode = 500
+        return next(error)
+    }
+
+    //token falsificado ou vencido
+    if(!decodedToken){
+        const error = new Error("Not authenticated.")
+        error.statusCode = 401
+        return next(error)
+    }
+    
+    res.status(200).json({authenticated: true, userId: decodedToken.userId, expDate: decodedToken.exp * 1000})
 }
