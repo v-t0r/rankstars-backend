@@ -70,6 +70,9 @@ exports.loginUser = async (req, res, next) => { //used to login users
             {expiresIn: "1h"}
         )
 
+        //o token guarda exp date em segundos
+        const expDate = Math.round((Date.now()/1000) + 60*60)
+
         res
             .status(200)
             .cookie("token", token, {
@@ -79,7 +82,7 @@ exports.loginUser = async (req, res, next) => { //used to login users
                 path: "/",
                 maxAge: 60*60*1000 // dura 1 hora
             })
-            .json({userId: user._id.toString()})
+            .json({userId: user._id.toString(), expDate: Math.round(expDate * 1000)})
 
     }catch(error){
         if(!error.statusCode){
