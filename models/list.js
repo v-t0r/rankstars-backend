@@ -20,6 +20,10 @@ const listSchema = new Schema({
         ref: "Review",
         default: []
     }],
+    reviewsCount: {
+        type: Number,
+        default: 0
+    },
     description: {
         type: String,
         default: ""

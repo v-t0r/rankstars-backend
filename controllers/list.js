@@ -9,7 +9,7 @@ exports.getList = async (req, res, next) => {
     const listId = req.params.listId
 
     //ordenacao
-    const {sortBy = null, order = null} = req.query
+    const {sortBy = null, order = "1", quantity = null, offset = 0} = req.query
 
     try{
 
@@ -45,6 +45,11 @@ exports.getList = async (req, res, next) => {
             error.statusCode = 404
             throw error
         }
+
+        if(quantity){
+            list.reviews = list.reviews.splice(offset, quantity)
+        }
+        
         
         return res.json({list})
 
@@ -142,6 +147,7 @@ exports.addReviewToList = async (req, res, next) => {
         }
 
         list.reviews.push(review._id)
+        list.reviewsCount += 1
         review.lists.push(list._id)
 
         list.save({session})
@@ -214,6 +220,7 @@ exports.removeReviewFromList = async (req, res, next) => {
         }
 
         list.reviews.pull(reviewId)
+        list.reviewsCount -= 1
         review.lists.pull(listId)
 
         await list.save({session})
@@ -277,7 +284,7 @@ exports.patchList = async (req, res, next) => {
         
         const oldReviewList = [...list.reviews]
 
-        const newReviewList = req.body.reviews
+        const newReviewList = req.body.reviews !== undefined ? req.body.reviews : [] 
 
         const removedReviews = oldReviewList.filter(review => !newReviewList.includes(review.toString()))
 
@@ -289,12 +296,15 @@ exports.patchList = async (req, res, next) => {
             }
         }
 
+        const reviewsCount = newReviewList.length
+
         const updatedList = await List.findOneAndUpdate(
             {_id: listId}, 
             {
                 title: req.body.title, 
                 description: req.body.description,
-                reviews: req.body.reviews
+                reviews: newReviewList,
+                reviewsCount
             }, 
             {new: true}
         )
