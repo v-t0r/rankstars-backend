@@ -108,7 +108,7 @@ exports.getReviewsFromUser = async (req, res, next) => {
     const userId = req.params.userId
 
     //ordenação padrão é por data descendente
-    const {sortBy = "createdAt", order = "-1"} = req.query
+    const {sortBy = "createdAt", order = "-1", limit = null, skip = 0} = req.query
 
     try{
         if(!["updatedAt", "createdAt", "rating"].includes(sortBy)){
@@ -125,7 +125,10 @@ exports.getReviewsFromUser = async (req, res, next) => {
 
         const user = await User.findById(userId, ["reviews"]).populate({ 
             path: "reviews",
-            options: { sort: {[sortBy]: +order}},
+            options: { 
+                sort: {[sortBy]: +order},
+                ...(limit ? {skip: skip, limit: limit} : {})
+            },
             populate: {
                 path: "author",
                 select: "_id username"
