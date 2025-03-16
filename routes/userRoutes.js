@@ -12,6 +12,9 @@ router.get("/users/myuser", isAuth, userController.getAuthenticatedUser)
 //GET one user
 router.get("/users/:userId", userController.getUser)
 
+//PATCH your own user
+router.patch("/users", isAuth, userController.patchMyUser)
+
 //DELETE your own user
 router.delete("/users", isAuth, userController.deleteMyUser)
 

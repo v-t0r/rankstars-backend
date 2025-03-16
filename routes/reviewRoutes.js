@@ -4,16 +4,16 @@ const { body } = require("express-validator")
 const isAuth = require("../util/auth")
 const reviewController = require("../controllers/review")
 
+const INTERESTS_LIST = require("../util/constants").INTERESTS_LIST
+const interests_db_name = INTERESTS_LIST.map(interest => interest[0])
+
 //GET review
 router.get("/reviews/:reviewId", reviewController.getReview)
 
 //POST review
 router.post("/reviews", isAuth, [
     body("title", "Invalid name.").notEmpty(),
-    body("type")
-        .notEmpty().withMessage("Type cannot be empty.")
-        .isIn(["movie", "tvshow", "videogame"]).withMessage("Invalid type."),
-    // body("review", "The review cannot be empty.").notEmpty(),
+    body("type").isIn(interests_db_name).withMessage("Invalid type."),
     body("rating").custom(async (value, {req}) => {
             if( +value < 0 || +value > 100){
                 console.log("entrou")
@@ -25,7 +25,7 @@ router.post("/reviews", isAuth, [
 //PATCH review
 router.patch("/reviews/:reviewId", isAuth, [
     body("title", "Name can't be empty.").optional().notEmpty(),
-    // body("review", "The review can't' be empty.").optional().notEmpty(),
+    body("type").isIn(interests_db_name).withMessage("Invalid type."),
     body("rating").optional().custom(async (value, {req}) => {
         if( +value < 0 || +value > 100){
             console.log("entrou")

@@ -1,6 +1,10 @@
+const path = require("path")
+const fs = require("fs")
+
 const mongoose = require("mongoose")
 
 const User = require("../models/user")
+const { body } = require("express-validator")
 
 exports.getAuthenticatedUser = async(req, res, next) => {
     const userId =  req.userId
@@ -210,6 +214,76 @@ exports.getListsFromUser = async (req, res, next) => {
     }
 }
 
+exports.patchMyUser = async (req, res, next) => {
+    const userId = req.userId
+
+    // if(!errors.isEmpty()){
+    //     const error = new Error("Validation failed.")
+    //     error.statusCode = 422
+    //     error.data = errors.array()
+    //     return next(error)
+    // }
+    
+    try{
+
+        for([key, value] of Object.entries(req.body)){
+            if(!["username", "image", "status", "interests"].includes(key)){
+                const error = new Error(`Invalid '${key}' field. Only username, porfilePicture, status and interests can be patched.`)
+                error.statusCode = 422
+                throw error
+            }
+        }
+
+        const user = await User.findById(userId)
+
+        if(!user){
+            const error = new Error("User not found!")
+            error.statusCode = 404
+            throw error
+        }
+
+        if(req.body.username && req.body.username !== user.username){
+            const usernameOwner = await User.findOne({username: req.body.username})
+
+            if(usernameOwner){
+                const error = new Error("This username is already in use")
+                error.statusCode = 401
+                throw error
+            }
+        }
+
+        const oldProfilePicture = user.profilePicUrl
+        let profilePicUrl = null
+        if(!req.body.image){
+            console.log("Imagem foi trocada")
+            profilePicUrl = req.files[0].path
+            console.log(profilePicUrl)
+            console.log(oldProfilePicture)
+            deleteImage(oldProfilePicture)
+        }
+
+        const patchedBody = {
+            username: req.body.username,
+            status: req.body.status,
+            interests: req.body.interests,
+            profilePicUrl: profilePicUrl ?? oldProfilePicture
+        }
+
+        const updatedUser = await User.findOneAndUpdate({_id: userId}, patchedBody, {new: true})
+
+        res.status(200).json({
+            message: "User updated sucessfully.",
+            user: updatedUser
+        })
+
+    }catch(error){
+        if(!error.statusCode){
+            error.statusCode = 500
+        }
+        next(error)
+    }
+}
+
 exports.deleteMyUser = async (req, res, next) => {
     const userId = req.userId
      
@@ -319,4 +393,9 @@ exports.unfollowUser = async (req, res, next) => {
         next(error)
     }
 
+}
+
+function deleteImage(imagePath){
+    const filePath = path.join(__dirname, "..", imagePath)
+    fs.unlink(filePath, err => {if(err){console.log("Fail to delete the review's images.")}})
 }
