@@ -11,7 +11,7 @@ router.post("/signup", [
             return Promise.reject("Username already in use.")
         }
     }),
-
+    body("username", "Username can't be empty!").trim().notEmpty(),
     body("email").trim().isEmail().withMessage("Invalid email.")
         .custom(async (value, {req}) => {
             const user = await User.findOne({email: value})

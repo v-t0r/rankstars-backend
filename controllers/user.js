@@ -4,7 +4,7 @@ const fs = require("fs")
 const mongoose = require("mongoose")
 
 const User = require("../models/user")
-const { body } = require("express-validator")
+const { validationResult } = require("express-validator")
 
 exports.getAuthenticatedUser = async(req, res, next) => {
     const userId =  req.userId
@@ -217,12 +217,14 @@ exports.getListsFromUser = async (req, res, next) => {
 exports.patchMyUser = async (req, res, next) => {
     const userId = req.userId
 
-    // if(!errors.isEmpty()){
-    //     const error = new Error("Validation failed.")
-    //     error.statusCode = 422
-    //     error.data = errors.array()
-    //     return next(error)
-    // }
+    const errors = validationResult(req)
+
+    if(!errors.isEmpty()){
+        const error = new Error("Validation failed.")
+        error.statusCode = 422
+        error.data = errors.array()
+        return next(error)
+    }
     
     try{
 
@@ -255,10 +257,7 @@ exports.patchMyUser = async (req, res, next) => {
         const oldProfilePicture = user.profilePicUrl
         let profilePicUrl = null
         if(!req.body.image){
-            console.log("Imagem foi trocada")
             profilePicUrl = req.files[0].path
-            console.log(profilePicUrl)
-            console.log(oldProfilePicture)
             deleteImage(oldProfilePicture)
         }
 

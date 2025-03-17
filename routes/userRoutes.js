@@ -1,7 +1,9 @@
 const router = require("express").Router()
+const { body } = require("express-validator")
 
 const userController = require("../controllers/user")
 const isAuth = require("../util/auth")
+const User = require("../models/user")
 
 //GET users
 router.get("/users", userController.getUsers)
@@ -13,7 +15,15 @@ router.get("/users/myuser", isAuth, userController.getAuthenticatedUser)
 router.get("/users/:userId", userController.getUser)
 
 //PATCH your own user
-router.patch("/users", isAuth, userController.patchMyUser)
+router.patch("/users", isAuth, [
+    body("username").trim().custom(async (value, {req}) => {
+        const user = await User.findOne({username: value})
+        if(user && user._id.toString() !== req.userId.toString()){
+            return Promise.reject("Username already in use.")
+        }
+    }),
+    body("username", "Username can't be empty!").trim().notEmpty(),
+], userController.patchMyUser)
 
 //DELETE your own user
 router.delete("/users", isAuth, userController.deleteMyUser)
