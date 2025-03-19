@@ -67,22 +67,33 @@ exports.getUsers = async (req, res, next) => {
 
 exports.getUser = async (req, res, next) => {
     const userId = req.params.userId
-    try{
-        const user = await User.findById(userId, [
+    let {basicOnly = false} = req.query
+
+    let fields = [
+        "_id", 
+        "username", 
+        "followers",
+        "following",
+        "reviews",
+        "favReviews",
+        "lists",
+        "likedReviews",
+        "followingLists",
+        "profilePicUrl",
+        "bannerPicUrl",
+        "status",
+        "createdAt"
+    ]
+
+    if(basicOnly === "true"){
+        fields = [
             "_id", 
             "username", 
-            "followers",
-            "following",
-            "reviews",
-            "favReviews",
-            "lists",
-            "likedReviews",
-            "followingLists",
             "profilePicUrl",
-            "bannerPicUrl",
-            "status",
-            "createdAt"
-        ]).populate([{
+        ]
+    }
+    try{
+        const user = await User.findById(userId, fields).populate(basicOnly ? [] : [{
                 path: "followers",
                 select: "_id username profilePicUrl status"
             },
@@ -90,9 +101,7 @@ exports.getUser = async (req, res, next) => {
                 path: "following",
                 select: "_id username profilePicUrl status"
             }
-        ]
-
-        )
+        ])
         if(!user){
             const error = new Error("User not found")
             error.statusCode = 404
