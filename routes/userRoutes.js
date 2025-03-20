@@ -16,13 +16,13 @@ router.get("/users/:userId", userController.getUser)
 
 //PATCH your own user
 router.patch("/users", isAuth, [
-    body("username").trim().custom(async (value, {req}) => {
+    body("username").optional().trim().custom(async (value, {req}) => {
         const user = await User.findOne({username: value})
         if(user && user._id.toString() !== req.userId.toString()){
             return Promise.reject("Username already in use.")
         }
     }),
-    body("username", "Username can't be empty!").trim().notEmpty(),
+    body("username", "Username can't be empty!").optional().trim().notEmpty(),
 ], userController.patchMyUser)
 
 //DELETE your own user

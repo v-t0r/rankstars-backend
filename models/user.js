@@ -13,6 +13,10 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
+    interests: [{ 
+        type: String,
+        default: [] 
+    }],
     followers: [{
         type: Schema.Types.ObjectId,
         ref: "User",
@@ -47,26 +51,10 @@ const userSchema = new Schema({
         type: String,
         default: "images/default-profile-pic.jpg"
     },
-    bannerPicUrl: {
-        type: String,
-        default: "defaultBannerPic.jpg"
-    },
     status: {
         type: String,
         default: "Hello! I'm using RankStars now!"
     },
-    backgroundColor: {
-        type: String,
-        default: "FFF"
-    },
-    primaryColor: {
-        type: String,
-        default: "FFF"
-    },
-    secondaryColor: {
-        type: String,
-        default: "FFF"
-    }
 }, {timestamps: true})
 
 userSchema.pre("findOneAndDelete", async function (next){

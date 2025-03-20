@@ -12,6 +12,7 @@ exports.getAuthenticatedUser = async(req, res, next) => {
     fields = [
         "_id", 
         "username", 
+        "interests",
         "followers",
         "following",
         "reviews",
@@ -22,7 +23,7 @@ exports.getAuthenticatedUser = async(req, res, next) => {
         "profilePicUrl",
         "bannerPicUrl",
         "status",
-        "createdAt"
+        "createdAt",
     ]
     
     try{
@@ -38,7 +39,8 @@ exports.getUsers = async (req, res, next) => {
     
     fields = [
         "_id", 
-        "username", 
+        "username",
+        "interests",
         "followers",
         "following",
         "reviews",
@@ -71,7 +73,8 @@ exports.getUser = async (req, res, next) => {
 
     let fields = [
         "_id", 
-        "username", 
+        "username",
+        "interests",
         "followers",
         "following",
         "reviews",
@@ -92,6 +95,7 @@ exports.getUser = async (req, res, next) => {
             "profilePicUrl",
         ]
     }
+
     try{
         const user = await User.findById(userId, fields).populate(basicOnly ? [] : [{
                 path: "followers",
@@ -265,7 +269,8 @@ exports.patchMyUser = async (req, res, next) => {
 
         const oldProfilePicture = user.profilePicUrl
         let profilePicUrl = null
-        if(!req.body.image){
+        if(!req.body.image && req.files.length > 0){
+            console.log(req.files)
             profilePicUrl = req.files[0].path
             deleteImage(oldProfilePicture)
         }
@@ -274,7 +279,8 @@ exports.patchMyUser = async (req, res, next) => {
             username: req.body.username,
             status: req.body.status,
             interests: req.body.interests,
-            profilePicUrl: profilePicUrl ?? oldProfilePicture
+            profilePicUrl: profilePicUrl ?? oldProfilePicture,
+            interests: req.body.interests
         }
 
         const updatedUser = await User.findOneAndUpdate({_id: userId}, patchedBody, {new: true})
