@@ -123,6 +123,60 @@ exports.postComment = async (req, res, next) => {
     }
 }
 
+exports.patchComment = async (req, res, next) => {
+    const errors = validationResult(req)
+
+    if(!errors.isEmpty()){
+        const error = new Error("Validation failed.")
+        error.statusCode = 422
+        error.data = errors.array()
+        return next(error)
+    }
+
+    for ([key, value] of Object.entries(req.body)){
+        if(!["content",].includes(key)){
+            const error = new Error(`Invalid '${key}' field. Only the 'content' field can be patched.`)
+            error.statusCode = 422
+            return next(error)
+        }
+    }
+
+    const userId = req.userId
+    const { commentId } = req.params
+
+    try{
+        const comment = await Comment.findById(commentId)
+
+        if(!comment){
+            const error = new Error("Comment not found!")
+            error.statusCode = 404
+            throw error
+        }
+
+        if(comment.author != userId){
+            const error = new Error("Not authorized!")
+            error.statusCode = 403
+            throw error
+        }
+
+        const patchedCotent = {content: req.body.content, isEdited: true}
+        const updatedComment = await Comment.findOneAndUpdate({_id: commentId}, patchedCotent, {new: true})
+
+        res.status(200).json({
+            message: `Comment ${commentId} updated successfuly.`,
+            comment: updatedComment
+        })
+
+    }catch(error){
+        if(!error.statusCode) { error.statusCode = 500 }
+        next(error) 
+    }
+    
+
+
+
+}
+
 exports.deleteComment = async (req, res, next) => {
     const { commentId } = req.params
 

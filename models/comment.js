@@ -24,7 +24,11 @@ const commentSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Comment",
         default: []
-    }]
+    }],
+    isEdited: {
+        type: Boolean,
+        default: false
+    } 
 }, {timestamps: true})
 
 commentSchema.pre("findOneAndDelete", async function (next){

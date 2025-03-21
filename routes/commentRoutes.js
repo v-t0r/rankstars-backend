@@ -13,6 +13,11 @@ router.post("/:where/:whereId/comments", isAuth, [
     ], 
     commentController.postComment)
 
+//PATCH comment 
+router.patch("/comments/:commentId", isAuth, [
+    body("content").trim().notEmpty().withMessage("Comment can't be empty.")
+], commentController.patchComment)
+
 //DELETE comment
 router.delete("/comments/:commentId", isAuth, commentController.deleteComment)
 
