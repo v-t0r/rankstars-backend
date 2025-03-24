@@ -59,9 +59,11 @@ exports.getUsers = async (req, res, next) => {
         ]
     }
 
+    const {search = ""} = req.query
+
     try{
-    const users = await User.find({}, fields)
-    res.status(200).json({users})
+        const users = await User.find({"username": RegExp(search, "i")}, fields)
+        res.status(200).json({users})
     }catch(error){
         next(error)
     }

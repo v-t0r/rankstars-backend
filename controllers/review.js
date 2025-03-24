@@ -7,6 +7,32 @@ const { validationResult } = require("express-validator")
 const User = require("../models/user")
 const Review = require("../models/review")
 
+exports.getReviews = async(req, res, next) => {
+    
+    fields = [
+        "_id",
+        "title",
+        "author",
+        "type",
+        "rating",
+        "review",
+        "totalLikes",
+        "imagesUrls"
+    ]
+
+    const {search = ""} = req.query
+    
+    try{
+        const reviews = await Review.find({"title": RegExp(search, "i")}, fields).populate({
+            path: "author",
+            select: "_id username profilePicUrl"
+        })
+        res.status(200).json({reviews})
+    }catch(error){
+        next(error)
+    }
+} 
+
 exports.getReview = async (req, res, next) => {
     const reviewId = req.params.reviewId
     

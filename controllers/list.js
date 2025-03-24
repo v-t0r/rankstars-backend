@@ -5,6 +5,31 @@ const User = require("../models/user")
 const Review = require("../models/review")
 const List = require("../models/list")
 
+
+exports.getLists = async(req, res, next) => {
+
+    fields = [
+        "_id",
+        "title",
+        "author",
+        "reviews",
+        "reviewsCount",
+        "description",
+    ]
+
+    const {search = ""} = req.query
+    
+    try{
+        const lists = await List.find({"title": RegExp(search, "i")}, fields).populate({
+            path: "reviews",
+            select: "_id imagesUrls"
+        })
+        res.status(200).json({lists})
+    }catch(error){
+        next(error)
+    }
+} 
+
 exports.getList = async (req, res, next) => {
     const listId = req.params.listId
 

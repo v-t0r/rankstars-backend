@@ -7,6 +7,9 @@ const reviewController = require("../controllers/review")
 const INTERESTS_LIST = require("../util/constants").INTERESTS_LIST
 const interests_db_name = INTERESTS_LIST.map(interest => interest[0])
 
+//GET reviews
+router.get("/reviews/", reviewController.getReviews)
+
 //GET review
 router.get("/reviews/:reviewId", reviewController.getReview)
 

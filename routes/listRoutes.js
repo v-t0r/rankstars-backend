@@ -4,6 +4,9 @@ const { body } = require("express-validator")
 const isAuth = require("../util/auth")
 const listController = require("../controllers/list")
 
+//GEt lists
+router.get("/lists", listController.getLists)
+
 //GET an especific list
 router.get("/lists/:listId", listController.getList)
 
