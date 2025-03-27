@@ -272,9 +272,10 @@ exports.patchMyUser = async (req, res, next) => {
         const oldProfilePicture = user.profilePicUrl
         let profilePicUrl = null
         if(!req.body.image && req.files.length > 0){
-            console.log(req.files)
             profilePicUrl = req.files[0].path
-            deleteImage(oldProfilePicture)
+            if(oldProfilePicture !== "images/default-profile-pic.jpg"){
+                deleteImage(oldProfilePicture)
+            } 
         }
 
         const patchedBody = {
