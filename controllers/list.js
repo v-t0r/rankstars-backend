@@ -20,10 +20,16 @@ exports.getLists = async(req, res, next) => {
     const {search = ""} = req.query
     
     try{
-        const lists = await List.find({"title": RegExp(search, "i")}, fields).populate({
-            path: "reviews",
-            select: "_id imagesUrls"
-        })
+        const lists = await List.find({"title": RegExp(search, "i")}, fields).populate([
+            {
+                path: "reviews",
+                select: "_id imagesUrls"
+            },
+            {
+                path: "author",
+                select: "_id username"
+            }
+        ])
         res.status(200).json({lists})
     }catch(error){
         next(error)
