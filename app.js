@@ -13,6 +13,7 @@ const userRoutes = require("./routes/userRoutes")
 const reviewRoutes = require("./routes/reviewRoutes")
 const listRoutes = require("./routes/listRoutes")
 const commentRoutes = require("./routes/commentRoutes")
+const feedRoutes = require("./routes/feedRoutes")
 
 const app = express()
 
@@ -62,6 +63,7 @@ app.use("/api", userRoutes)
 app.use("/api", reviewRoutes)
 app.use("/api", listRoutes)
 app.use("/api", commentRoutes)
+app.use("/api", feedRoutes)
 
 app.use("/api", (req, res, next) => {
     res.json("Hello, world! Welcome to the RankStars API!")

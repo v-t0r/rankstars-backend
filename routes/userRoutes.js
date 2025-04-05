@@ -45,4 +45,6 @@ router.post("/users/:userId/followers", isAuth, userController.followUser)
 //Unfollow a user
 router.delete("/users/:userId/followers", isAuth, userController.unfollowUser)
 
+
+
 module.exports = router
