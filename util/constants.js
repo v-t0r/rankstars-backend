@@ -7,8 +7,9 @@
     ["intruments", "Instruments"],
     ["music", "Music"],
     ["movies", "Movies"],
+    ["perfumery", "Perfumary"],
     ["programming", "Programming"],
     ["tvshows", "Tv Shows"],
     ["videogames", "Video Games"],
-    ["other", "Other"]
+    ["other", "Other"],
 ]
