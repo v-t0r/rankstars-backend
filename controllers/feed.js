@@ -63,8 +63,6 @@ exports.getForYou = async(req, res, next) => {
         const userInterests = (await User.findById(userId)).interests
         //colocar em uma promise all depois
 
-        console.log(userInterests)
-
         const recentReviews = await Review.find({type: {$in: userInterests}})
             .populate({
                 path: "author", 
