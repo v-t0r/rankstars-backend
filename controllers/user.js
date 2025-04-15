@@ -4,6 +4,7 @@ const fs = require("fs")
 const mongoose = require("mongoose")
 
 const User = require("../models/user")
+const Review = require("../models/review")
 const { validationResult } = require("express-validator")
 
 exports.getAuthenticatedUser = async(req, res, next) => {
@@ -127,7 +128,32 @@ exports.getReviewsFromUser = async (req, res, next) => {
     const userId = req.params.userId
 
     //ordenação padrão é por data descendente
-    const {sortBy = "createdAt", order = "-1", limit = null, skip = 0} = req.query
+    const {
+        sortBy = "createdAt", 
+        order = "-1", 
+        limit = null, 
+        skip = 0,
+        minRating = 0,
+        maxRating = 100,
+        minDate = new Date(0),
+        maxDate = Date.now(),
+        category = null
+    } = req.query
+
+    const categories = category ? category.split(",") : null
+
+    const filter = {
+        "author": userId,
+        "rating": {$gte: minRating, $lte: maxRating},
+        "createdAt": {$gte: minDate, $lte: maxDate},
+        ...(category ? {"type": {$in: categories}} : {})
+    }
+
+    const options = { 
+        sort: {[sortBy]: +order},
+        ...(limit ? {limit: limit} : {}),
+        skip: skip
+    }
 
     try{
         if(!["updatedAt", "createdAt", "rating"].includes(sortBy)){
@@ -142,25 +168,12 @@ exports.getReviewsFromUser = async (req, res, next) => {
             throw error
         }
 
-        const user = await User.findById(userId, ["reviews"]).populate({ 
-            path: "reviews",
-            options: { 
-                sort: {[sortBy]: +order},
-                ...(limit ? {skip: skip, limit: limit} : {})
-            },
-            populate: {
+        const reviews = await Review.find(filter, null, options).populate({
                 path: "author",
                 select: "_id username"
-            }
-        })
+            })
 
-        if(!user){
-            const error = new Error("User not found!")
-            error.statusCode = 500
-            throw error
-        }
-
-        res.status(200).json({reviews: user.reviews})
+        res.status(200).json({reviews: reviews})
 
     }catch(error){
         if(error.kind == "ObjectId"){

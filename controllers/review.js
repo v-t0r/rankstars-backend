@@ -20,10 +20,38 @@ exports.getReviews = async(req, res, next) => {
         "imagesUrls"
     ]
 
-    const {search = ""} = req.query
+    const {
+        search = "",
+        sortBy = "createdAt", 
+        order = "-1", 
+        limit = null, 
+        skip = 0,
+        minRating = 0,
+        maxRating = 100,
+        minDate = new Date(0),
+        maxDate = Date.now(),
+        category = null,
+        author = null
+    } = req.query
+
+    const categories = category ? category.split(",") : null
     
+    const filter = {
+        "title": RegExp(search, "i"),
+        ...(author ? {"author": author} : {}),
+        "rating": {$gte: minRating, $lte: maxRating},
+        "createdAt": {$gte: minDate, $lte: maxDate},
+        ...(category ? {"type": {$in: categories}} : {})
+    }
+
+    const options = { 
+        sort: {[sortBy]: +order},
+        ...(limit ? {limit: limit} : {}),
+        skip: skip
+    }
+
     try{
-        const reviews = await Review.find({"title": RegExp(search, "i")}, fields).populate({
+        const reviews = await Review.find(filter, fields, options).populate({
             path: "author",
             select: "_id username profilePicUrl"
         })
