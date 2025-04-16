@@ -4,7 +4,8 @@ const { body } = require("express-validator")
 const authController = require("../controllers/auth")
 const User = require("../models/user")
 
-router.post("/signup", [
+
+router.post("/users", [
     body("username").trim().custom(async (value, {req}) => {
         const user = await User.findOne({username: value})
         if(user){
@@ -24,9 +25,9 @@ router.post("/signup", [
 
 ], authController.signupUser)
 
-router.post("/login", authController.loginUser)
+router.post("/users/login", authController.loginUser)
 
-router.get("/logout", authController.logoutUser)
+router.get("/users/logout", authController.logoutUser)
 
 router.get("/auth/status", authController.loginStatus)
 

@@ -38,7 +38,7 @@ exports.getReviews = async(req, res, next) => {
     
     const filter = {
         "title": RegExp(search, "i"),
-        ...(author ? {"author": author} : {}),
+        ...(author ? {"author": {$in: author}} : {}),
         "rating": {$gte: minRating, $lte: maxRating},
         "createdAt": {$gte: minDate, $lte: maxDate},
         ...(category ? {"type": {$in: categories}} : {})

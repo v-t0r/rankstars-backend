@@ -4,6 +4,7 @@ const fs = require("fs")
 const mongoose = require("mongoose")
 
 const User = require("../models/user")
+const List = require("../models/list")
 const Review = require("../models/review")
 const { validationResult } = require("express-validator")
 
@@ -190,7 +191,29 @@ exports.getReviewsFromUser = async (req, res, next) => {
 exports.getListsFromUser = async (req, res, next) => {
     const userId = req.params.userId
 
-    const {sortBy = "createdAt", order = "-1"} = req.query
+    const {
+        sortBy = "createdAt", 
+        order = "-1",
+        limit = null,
+        skip = 0,
+        minDate = new Date(0),
+        maxDate = Date.now(),
+        category = null
+    } = req.query
+
+    const categories = category ? category.split(",") : null
+
+    const filter = {
+        "author": userId,
+        "createdAt": {$gte: minDate, $lte: maxDate},
+        ...(category ? {"type": {$in: categories}} : {})
+    }
+
+    const options = { 
+        sort: {[sortBy]: +order},
+        ...(limit ? {limit: limit} : {}),
+        skip: skip
+    }
 
     try{
         if(!["updatedAt", "createdAt"].includes(sortBy)){
@@ -205,12 +228,10 @@ exports.getListsFromUser = async (req, res, next) => {
             throw error
         }
 
-        const user = await User.findById(userId, ["lists"]).populate({
-            path: "lists",
-            options: { sort: {[sortBy]: +order}},
-            populate: [
+        const lists = await List.find(filter, null, options).populate([
                 {
                     path: "reviews",
+                    select: "_id title author imagesUrls",
                     populate: {
                         path: "author",
                         select: "_id username"
@@ -220,16 +241,9 @@ exports.getListsFromUser = async (req, res, next) => {
                     path: "author",
                     select: "_id username"
                 }
-            ]
-        })
+            ])
 
-        if(!user){
-            const error = new Error("User not found!")
-            error.statusCode = 500
-            throw error
-        }
-
-        res.status(200).json({lists: user.lists})
+        res.status(200).json({lists: lists})
 
     }catch(error){
         if(error.kind == "ObjectId"){

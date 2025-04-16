@@ -17,10 +17,47 @@ exports.getLists = async(req, res, next) => {
         "description",
     ]
 
-    const {search = ""} = req.query
+    const {
+        search = "",
+        sortBy = "createdAt", 
+        order = "-1",
+        limit = null,
+        skip = 0,
+        minDate = new Date(0),
+        maxDate = Date.now(),
+        category = null,
+        author = null
+    } = req.query
+
+    const categories = category ? category.split(",") : null
     
+    const filter = {
+        "title": RegExp(search, "i"),
+        ...(author ? {"author": {$in: author}} : {}),
+        "createdAt": {$gte: minDate, $lte: maxDate},
+        ...(category ? {"type": {$in: categories}} : {})
+    }
+
+    const options = { 
+        sort: {[sortBy]: +order},
+        ...(limit ? {limit: limit} : {}),
+        skip: skip
+    }
+
     try{
-        const lists = await List.find({"title": RegExp(search, "i")}, fields).populate([
+        if(!["updatedAt", "createdAt"].includes(sortBy)){
+            const error = new Error("Invalid sort field")
+            error.statusCode = 400
+            throw error
+        }
+
+        if(!["-1", "1"].includes(order)){
+            const error = new Error("Invalid order field")
+            error.statusCode = 400
+            throw error
+        }
+
+        const lists = await List.find(filter, fields, options).populate([
             {
                 path: "reviews",
                 select: "_id imagesUrls"
@@ -40,7 +77,12 @@ exports.getList = async (req, res, next) => {
     const listId = req.params.listId
 
     //ordenacao
-    const {sortBy = null, order = "1", quantity = null, offset = 0} = req.query
+    const {
+        sortBy = null, 
+        order = "1", 
+        quantity = null, 
+        offset = 0
+    } = req.query
 
     try{
 
