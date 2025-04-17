@@ -1,0 +1,468 @@
+openapi: 3.0.4
+info: 
+  title: RankStars API
+  description: |-
+    This is the documentation of the RankStars API. You can access the website at [https://website.com](https://website.com).
+    
+    This documentation aims to provide all the necessary information to use and understand the API.
+    
+  contact:
+    email: vitorlemes.com@hotmail.com
+  version: 1.0.0
+servers:
+  - url: https://website.com/api/
+  
+tags:
+  - name: user
+    description: Operations about user
+  - name: review
+    description: Operations about review
+  
+paths:
+  /users:
+    post:
+      tags: 
+        - user
+      summary: Create a new user
+      description: This endpoint creates a new user.
+      operationId: createUser
+      requestBody:
+        description: Created user object
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: MadMax6352
+                email:
+                  type: string
+                  example: madmax@email.com
+                password:
+                  type: string
+                  example: mypasword123
+          
+      responses:
+        "200":
+          description: Succesful operation
+        "422":
+          description: Validation error
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags: 
+        - user
+      summary: Get all users
+      
+      parameters:
+        - name: compact
+          in: query
+          description: Asks for a compact version of the user object
+          required: false
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          description: Search term to the username
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of users
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+    delete:
+      tags: 
+        - user
+      summary: Deletes the authenticated user
+      description: The user needs to be authenticated to use this and can only delete themself.
+      responses:
+        "200":
+          description: Sucessful operation
+        "401":
+          description: User not authenticated
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags: 
+        - user
+      summary: Patches the authenticated user
+      description: The user needs to be authenticated to use this and can only patch themself.
+      
+      requestBody:
+        description: Patch user object
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: MadMax1823
+                status:
+                  type: string
+                image:
+                  type: string 
+                  format: binary
+                interests:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Sucessful operation
+        "401":
+          description: User not authenticated/authorized
+        "422":
+          description: Validation error.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /users/login:
+    post:
+      tags: 
+        - user
+      summary: Logs a user into the system.
+      description: This endpoint creates a logs a user into the system.
+      operationId: loginUser
+      requestBody:
+        description: Login response
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: madmax@email.com
+                password:
+                  type: string
+                  example: mypasword123
+          
+      responses:
+        "200":
+          description: Succesful login
+        "422":
+          description: Invalid email/password
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /users/logout:
+    get:
+      tags: 
+        - user
+      summary: Logs out a user.
+      description: Clears the JWT token cookie of the logged user.
+      
+      responses:
+        "200":
+          description: Succesful logout
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /users/myuser:
+    get:
+      tags: 
+        - user
+      summary: Get info about the authenticated user.
+      description: Get user details based on the id of the authenticated user. The user needs to be logged to perform this request.
+  
+      responses:
+        "200":
+          description: Succesful operation
+        "401": 
+          description: User not authenticated
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /users/{id}:
+    get:
+      tags: 
+        - user
+      summary: Get user by id.
+      description: Get user details based on id.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      
+      responses:
+        "200":
+          description: Succesful operation
+        "404": 
+          description: User not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /users/{id}/reviews:
+    get:
+      tags: 
+        - user
+      summary: Get reviews from an user.
+      description: Get the reviews posted by an specific user.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        - name: sortBy
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "createdAt"
+            enum: [createdAt, updatedAt, rating]
+        
+        - name: order
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "-1"
+            
+        - name: limit
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "10"
+            
+        - name: skip
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "20"
+        
+        - name: minRating
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "60"
+            
+        - name: maxRating
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 100
+      
+        - name: minDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+            
+        - name: maxDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "tvshows,movies,videogames" 
+            description: Can receive multiple values separated by comma
+            
+      responses:
+        "200":
+          description: An array of reviews
+        "400":
+          description: Invalid value to query parameter.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+  /users/{id}/lists:
+    get:
+      tags: 
+        - user
+      summary: Get lists from an user.
+      description: Get the lists created by an specific user.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        - name: sortBy
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "createdAt"
+            enum: [createdAt, updatedAt]
+        
+        - name: order
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "-1"
+            
+        - name: limit
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "10"
+            
+        - name: skip
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "20"
+        
+        - name: minDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+            
+        - name: maxDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "tvshows,movies,videogames"
+          description: Can receive multiple values separated by comma
+            
+      responses:
+        "200":
+          description: An array of lists
+        "400":
+          description: Invalid value to query parameter.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /users/{id}/followers:
+    post:
+      tags: 
+        - user
+      summary: Follows an user.
+      description: The logged in user follows the user specified by id. The user needs to be authenticated to perform this request.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      
+      responses:
+        "200":
+          description: User followed succesfully.
+        "403":
+          description: Authenticated user already follows this user.
+        "404": 
+          description: User not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: 
+        - user
+      summary: Unfollows an user.
+      description: The logged in user unfollows the user specified by id. The user needs to be authenticated to perform this request.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      
+      responses:
+        "200":
+          description: User unfollowed succesfully.
+        "403":
+          description: Authenticated user does not follows this user.
+        "404": 
+          description: User not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        data: 
+          type: object
+
+      
+          

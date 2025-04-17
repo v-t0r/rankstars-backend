@@ -254,7 +254,7 @@ exports.getReviewsFromList = async (req, res, next) => {
 
     if(!list){
         const error = new Error("List not found!")
-        error.statusCode = 400
+        error.statusCode = 404
         throw error
     }
 

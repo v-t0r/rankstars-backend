@@ -26,12 +26,12 @@ exports.getReviews = async(req, res, next) => {
         order = "-1", 
         limit = null, 
         skip = 0,
+        author = null,
         minRating = 0,
         maxRating = 100,
         minDate = new Date(0),
         maxDate = Date.now(),
         category = null,
-        author = null
     } = req.query
 
     const categories = category ? category.split(",") : null
@@ -51,6 +51,19 @@ exports.getReviews = async(req, res, next) => {
     }
 
     try{
+
+        if(!["updatedAt", "createdAt", "rating"].includes(sortBy)){
+            const error = new Error("Invalid sort field")
+            error.statusCode = 400
+            throw error
+        }
+
+        if(!["-1", "1"].includes(order)){
+            const error = new Error("Invalid order field")
+            error.statusCode = 400
+            throw error
+        }
+
         const reviews = await Review.find(filter, fields, options).populate({
             path: "author",
             select: "_id username profilePicUrl"
@@ -108,7 +121,7 @@ exports.createReview = async (req, res, next) => {
 
     const user = await User.findById(author)
     if(!user){
-        const error = new Error("User not authorized.")
+        const error = new Error("User not found.")
         error.statusCode = 404
         next(error)
     }

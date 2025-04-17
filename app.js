@@ -1,5 +1,6 @@
 require("dotenv").config()
 const path = require("path")
+const fs = require("fs")
 
 const express = require("express")
 const cors = require("cors")
@@ -7,6 +8,8 @@ const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
 const mongoose = require("mongoose")
 const multer = require("multer")
+const swaggerUi = require("swagger-ui-express")
+const yaml = require("yaml")
 
 const authRoutes = require("./routes/authRoutes")
 const userRoutes = require("./routes/userRoutes")
@@ -18,6 +21,12 @@ const feedRoutes = require("./routes/feedRoutes")
 const app = express()
 
 app.use("/images", express.static(path.join(__dirname, "images")))
+
+//configurando rota de documentaçao
+const docsFile = fs.readFileSync("./rank-stars-api-docs.yaml", "utf8")
+const docsParsed = yaml.parse(docsFile)
+
+app.use("/api/api-docs", swaggerUi.serve, swaggerUi.setup(docsParsed))
 
 // para corrigir error de cors
 app.use(cors({
