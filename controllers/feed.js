@@ -5,7 +5,6 @@ const Review = require("../models/review")
 const List = require("../models/list")
 
 exports.getRecentPosts = async(req, res, next) => {
-    const userId = req.userId
     const {limit = 15, skip = 0} = req.query
 
     try{

@@ -14,12 +14,51 @@ servers:
   
 tags:
   - name: user
-    description: Operations about user
+    description: Operations about users
   - name: review
-    description: Operations about review
+    description: Operations about reviews
+  - name: list
+    description: Operations about lists
+  - name: comment
+    description: Operation about comments
+  - name: feed
+    description: Operations about feeds
+  - name: auth
+    description: Operations about authentication
   
 paths:
+
+  # ABOUT USERS
+
   /users:
+    get:
+      tags: 
+        - user
+      summary: Get all users
+      
+      parameters:
+        - name: compact
+          in: query
+          description: Asks for a compact version of the user object
+          required: false
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          description: Search term to the username
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A list of users
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
     post:
       tags: 
         - user
@@ -54,54 +93,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    get:
-      tags: 
-        - user
-      summary: Get all users
-      
-      parameters:
-        - name: compact
-          in: query
-          description: Asks for a compact version of the user object
-          required: false
-          schema:
-            type: boolean
-        - name: search
-          in: query
-          description: Search term to the username
-          required: false
-          schema:
-            type: string
-      responses:
-        "200":
-          description: A list of users
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-    
-    delete:
-      tags: 
-        - user
-      summary: Deletes the authenticated user
-      description: The user needs to be authenticated to use this and can only delete themself.
-      responses:
-        "200":
-          description: Sucessful operation
-        "401":
-          description: User not authenticated
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     patch:
       tags: 
         - user
-      summary: Patches the authenticated user
+      summary: Patch the authenticated user
       description: The user needs to be authenticated to use this and can only patch themself.
       
       requestBody:
@@ -136,12 +131,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    delete:
+      tags: 
+        - user
+      summary: Delete the authenticated user
+      description: The user needs to be authenticated to use this and can only delete themself.
+      responses:
+        "200":
+          description: Sucessful operation
+        "401":
+          description: User not authenticated
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   
   /users/login:
     post:
       tags: 
         - user
-      summary: Logs a user into the system.
+        - auth
+      summary: Log a user into the system.
       description: This endpoint creates a logs a user into the system.
       operationId: loginUser
       requestBody:
@@ -174,7 +187,8 @@ paths:
     get:
       tags: 
         - user
-      summary: Logs out a user.
+        - auth
+      summary: Log out a user.
       description: Clears the JWT token cookie of the logged user.
       
       responses:
@@ -191,6 +205,7 @@ paths:
     get:
       tags: 
         - user
+        - auth
       summary: Get info about the authenticated user.
       description: Get user details based on the id of the authenticated user. The user needs to be logged to perform this request.
   
@@ -206,14 +221,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
                 
-  /users/{id}:
+  /users/{userId}:
     get:
       tags: 
         - user
       summary: Get user by id.
       description: Get user details based on id.
       parameters:
-        - name: id
+        - name: userId
           in: path
           required: true
           schema:
@@ -232,14 +247,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
   
-  /users/{id}/reviews:
+  /users/{userId}/reviews:
     get:
       tags: 
         - user
       summary: Get reviews from an user.
       description: Get the reviews posted by an specific user.
       parameters:
-        - name: id
+        - name: userId
           in: path
           required: true
           schema:
@@ -323,14 +338,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     
-  /users/{id}/lists:
+  /users/{userId}/lists:
     get:
       tags: 
         - user
       summary: Get lists from an user.
       description: Get the lists created by an specific user.
       parameters:
-        - name: id
+        - name: userId
           in: path
           required: true
           schema:
@@ -401,20 +416,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
                 
-  /users/{id}/followers:
+  /users/{userId}/followers:
     post:
       tags: 
         - user
-      summary: Follows an user.
+      summary: Follow an user.
       description: The logged in user follows the user specified by id. The user needs to be authenticated to perform this request.
       parameters:
-        - name: id
+        - name: userId
           in: path
           required: true
           schema:
             type: string
             example: "678ec07b6e268a81e2f3a687"
-      
       responses:
         "200":
           description: User followed succesfully.
@@ -431,10 +445,10 @@ paths:
     delete:
       tags: 
         - user
-      summary: Unfollows an user.
+      summary: Unfollow an user.
       description: The logged in user unfollows the user specified by id. The user needs to be authenticated to perform this request.
       parameters:
-        - name: id
+        - name: userId
           in: path
           required: true
           schema:
@@ -454,6 +468,1105 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+      
+  # ABOUT REVIEWS
+                
+  /reviews:
+    get:
+      tags: 
+        - review
+      summary: Get all reviews
+      description: Get all the reviews matching the specified filters.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "Some search"
+        
+        - name: sortBy
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "createdAt"
+            enum: [createdAt, updatedAt, rating]
+        
+        - name: order
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "-1"
+            
+        - name: limit
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "10"
+            
+        - name: skip
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "20"
+        
+        - name: author
+          in: query
+          required: false
+          description: Expects the author ID
+          schema: 
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        
+        - name: minRating
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "60"
+            
+        - name: maxRating
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 100
+      
+        - name: minDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+            
+        - name: maxDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "tvshows,movies,videogames" 
+            description: Can receive multiple values separated by comma
+      responses:
+        "200":
+          description: An array of reviews
+        "400":
+          description: Invalid value to query parameter.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags: 
+        - review
+      summary: Create a new review
+      description: The user needs to be authenticated to perform this action.
+      requestBody:
+        description: Review structure
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - title
+                - rating
+                - type
+              properties:
+                title:
+                  type: string
+                  example: New Review
+                rating:
+                  type: number
+                  example: 100
+                review:
+                  type: string
+                type:
+                  type: string
+                  example: tvshows
+                image:
+                  type: array
+                  format: binary
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Sucessful operation
+        "401":
+          description: User is not authenticated.
+        "422":
+          description: Validation error.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /reviews/{reviewId}:
+    get:
+      tags: 
+        - review
+      summary: Get review by id
+      description: Get an specific review based on the id.
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        
+      responses:
+        "200":
+          description: The review that matches the id
+        "404":
+          description: Review not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+    patch:
+      tags: 
+        - review
+      summary: Patch review by id
+      description: Get an specific review based on the id and modify it based on the request body received. This operation can only be performed by the review's author.
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      requestBody:
+        description: Review structure
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: New Review
+                rating:
+                  type: number
+                  example: 100
+                review:
+                  type: string
+                type:
+                  type: string
+                  example: tvshows
+                image:
+                  type: array
+                  format: binary
+                  items:
+                    type: string
+        
+      responses:
+        "200":
+          description: Succesful operation
+        "403":
+          description: User is not the author of the specified review
+        "404":
+          description: Review not found
+        "422":
+          description: Invalid fields received in the request body
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      
+    delete:
+      tags: 
+        - review
+      summary: Delete review by id
+      description: Deletes an specific review based on the id. This operation can only be performed by the review's author.
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      responses:
+        "200":
+          description: Succesful operation
+        "403":
+          description: User is not the author of the specified review
+        "404":
+          description: Review not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /reviews/{reviewId}/likes:
+    post:
+      tags: 
+        - review
+      summary: Like a review.
+      description: The logged in user likes the review specified by id. The user needs to be authenticated to perform this request.
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      responses:
+        "200":
+          description: Review liked succesfully.
+        "403":
+          description: Authenticated user already liked this review.
+        "404": 
+          description: Review not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: 
+        - review
+      summary: Deslike a review.
+      description: The logged in user deslikes the review specified by id. The user needs to be authenticated to perform this request.
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      responses:
+        "200":
+          description: Review desliked succesfully.
+        "403":
+          description: Authenticated user does not liked this review.
+        "404": 
+          description: Review not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  # ABOUT LISTS
+                
+  /lists:
+    get:
+      tags: 
+        - list
+      summary: Get all lists
+      description: Get all the lists matching the specified filters.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "Some search"
+        
+        - name: sortBy
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "createdAt"
+            enum: [createdAt, updatedAt, rating]
+        
+        - name: order
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "-1"
+            
+        - name: limit
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "10"
+            
+        - name: skip
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "20"
+        
+        - name: author
+          in: query
+          required: false
+          description: Expects the author ID
+          schema: 
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        
+        - name: minDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+            
+        - name: maxDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "tvshows,movies,videogames" 
+            description: Can receive multiple values separated by comma
+      responses:
+        "200":
+          description: An array of lists
+        "400":
+          description: Invalid value to query parameter.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags: 
+        - list
+      summary: Create a new list
+      description: The user needs to be authenticated to perform this action.
+      requestBody:
+        description: List structure
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  example: New List
+                description:
+                  type: string
+                  example: Description of the list
+      responses:
+        "200":
+          description: Sucessful operation
+        "401":
+          description: User is not authenticated.
+        "422":
+          description: Validation error.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /lists/{listId}:
+    get:
+      tags: 
+        - list
+      summary: Get list by id
+      description: Get an specific list based on the id.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        
+        - name: sortBy
+          in: query
+          required: false
+          description: The order criteria of the list's reviews.
+          schema: 
+            type: string
+            example: "createdAt"
+            enum: [createdAt, updatedAt, rating]
+        
+        - name: order
+          in: query
+          required: false
+          description: The order of the list's reviews.
+          schema: 
+            type: string
+            example: "-1"
+            
+        - name: limit
+          in: query
+          required: false
+          description: The limit of reviews to retrieve.
+          schema: 
+            type: number
+            example: "10"
+            
+        - name: skip
+          in: query
+          required: false
+          description: The number of reviews to skip.
+          schema: 
+            type: number
+            example: "0"
+        
+      responses:
+        "200":
+          description: The list that matches the id
+        "404":
+          description: List not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+    patch:
+      tags: 
+        - list
+      summary: Patch list by id
+      description: Get an specific list based on the id and modify it based on the request body received. This operation can only be performed by the list's author.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      requestBody:
+        description: List structure
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: New title
+                description:
+                  type: string
+                  example: New list's description.
+                reviews:
+                  type: array
+                  format: id
+                  items:
+                    type: string
+                    example: 678ec07b6e268a81e2f3a687
+
+        
+      responses:
+        "200":
+          description: Succesful operation
+        "403":
+          description: User is not the author of the specified list
+        "404":
+          description: List not found
+        "422":
+          description: Invalid fields received in the request body
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      
+    delete:
+      tags: 
+        - list
+      summary: Delete list by id
+      description: Deletes an specific list based on the id. This operation can only be performed by the review's author.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      responses:
+        "200":
+          description: Succesful operation
+        "403":
+          description: User is not the author of the specified list
+        "404":
+          description: List not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /lists/{listId}/followers:
+    post:
+      tags: 
+        - list
+      summary: Follow a list.
+      description: The logged in user follows the list specified by id. The user needs to be authenticated to perform this request.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      responses:
+        "200":
+          description: List followed succesfully
+        "403":
+          description: Authenticated user already follows this list.
+        "404": 
+          description: List not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: 
+        - list
+      summary: Unfollow a list.
+      description: The logged in user unfollows the list specified by id. The user needs to be authenticated to perform this request.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+      responses:
+        "200":
+          description: List unfollowed succesfully
+        "403":
+          description: Authenticated user does not follows this list.
+        "404": 
+          description: List not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /lists/{listId}/reviews:
+    get:
+      tags: 
+        - list
+      summary: Get reviews from list
+      description: Get the reviews from an specific list based on the id.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        
+        - name: populate
+          in: query
+          required: false
+          description: Populate the reviews.
+          schema: 
+            type: boolean
+      responses:
+        "200":
+          description: An array of reviews
+        "404":
+          description: List not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /lists/{listId}/reviews/{reviewId}:
+    post:
+      tags: 
+        - list
+      summary: Add review to list.
+      description: Add the review specified by reviewId to the list specified by listId. The user needs to be the author of the list to perform this request.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      responses:
+        "200":
+          description: Succesful operation
+        "401":
+          description: User is not logged / is not author of the list / review is already on the list
+        "404": 
+          description: List not found / review not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: 
+        - list
+      summary: Remove review from list.
+      description: Remove the review specified by reviewId from the list specified by listId. The user needs to be the author of the list to perform this request.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      responses:
+        "200":
+          description: Succesful operation
+        "401":
+          description: User is not logged / is not author of the list / review is not in the list
+        "404": 
+          description: List not found / review not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  # ABOUT COMMENTS
+  /reviews/{reviewId}/comments:
+    get:
+      tags:
+        - review
+        - comment
+      summary:  Get comments from review
+      description: Get all the comments from the review specified by id.
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      
+      responses:
+        "200":
+          description: An array of comments
+        "404": 
+          description: Review not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - review
+        - comment
+      summary:  Post comment in review
+      description: Post a comment in a review. The user needs to be authenticated to perform this action.
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      requestBody:
+        description: Comment structure
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: This is a comment!
+      responses:
+        "200":
+          description: Succesful operation
+        "404": 
+          description: Review not found
+        "422":
+          description: Content field is empty
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /lists/{listId}/comments:
+    get:
+      tags:
+        - list
+        - comment
+      summary:  Get comments from list
+      description: Get all the comments from the list specified by id.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      
+      responses:
+        "200":
+          description: An array of comments
+        "404": 
+          description: List not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - list
+        - comment
+      summary:  Post comment in list
+      description: Post a comment in a list. The user needs to be authenticated to perform this action.
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      requestBody:
+        description: Comment structure
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: This is a comment!
+      responses:
+        "200":
+          description: Succesful operation
+        "404": 
+          description: List not found
+        "422":
+          description: Content field is empty
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /comments/{commentId}/comments:
+    get:
+      tags:
+        - comment
+      summary:  Get answers from comment
+      description: Get all the answers from the comment specified by id.
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      
+      responses:
+        "200":
+          description: An array of comments
+        "404": 
+          description: Comment not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - comment
+      summary:  Post answer in comment
+      description: Post a answer in a comment. The user needs to be authenticated to perform this action.
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      requestBody:
+        description: Comment structure
+        
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: This is a comment!
+      responses:
+        "200":
+          description: Succesful operation
+        "404": 
+          description: Comment not found
+        "422":
+          description: Content field is empty
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /comments/{commentId}:
+    patch:
+      tags:
+        - list
+        - comment
+      summary:  Patch comment
+      description: Patches a comment independently of where it is. The user needs to be authenticated and be the author of the comment.
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      requestBody:
+        description: Comment structure
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: This is the patched comment!
+      responses:
+        "200":
+          description: Succesful operation
+        "403": 
+          description: User not authenticated / not the author
+        "404": 
+          description: Comment not found
+        "422":
+          description: Query field is invalid
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+    delete:
+      tags:
+        - list
+        - comment
+      summary:  Delete comment
+      description: Deletes a comment independently of where it is. The user needs to be authenticated and be the author of the comment. This action also deletes all the answers of the comment.
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema: 
+            type: string
+            example: "915fe07j7y296e90c9o1p689"
+      responses:
+        "200":
+          description: Succesful operation
+        "403": 
+          description: User not authenticated / not the author
+        "404": 
+          description: Comment not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  # ABOUT FEEDS
+  
+  /feed/recent-posts:
+    get: 
+      tags:
+        - feed
+      summary: Get recent posts
+      description: Get the most recent lists and reviews of all the users.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: The max number of posts retrived. 
+          schema: 
+            type: number
+            example: 20
+        - name: skip
+          in: query
+          required: false
+          description: The number of posts to skip. 
+          schema: 
+            type: number
+            example: 20
+      responses:
+        "200":
+          description: An array of reviews and lists
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  
+  /feed/following:
+    get: 
+      tags:
+        - feed
+      summary: Get user's followings' posts
+      description: Get the most recent lists and reviews of the users that the authenticated user follows. The user needs to be logged in to perform this action.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: The max number of posts retrived. 
+          schema: 
+            type: number
+            example: 20
+        - name: skip
+          in: query
+          required: false
+          description: The number of posts to skip. 
+          schema: 
+            type: number
+            example: 20
+      responses:
+        "200":
+          description: An array of reviews and lists
+        "401":
+          description: User not authenticated
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    
+  /feed/for-you:
+    get: 
+      tags:
+        - feed
+      summary: Get posts based on user's interests
+      description: Get the most recent lists and reviews that matches the authenticated user interests. The user needs to be logged in to perform this action.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: The max number of posts retrived. 
+          schema: 
+            type: number
+            example: 20
+        - name: skip
+          in: query
+          required: false
+          description: The number of posts to skip. 
+          schema: 
+            type: number
+            example: 20
+      responses:
+        "200":
+          description: An array of reviews and lists
+        "401":
+          description: User not authenticated
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ABOUT AUTH
+  /auth/status:
+    get:
+      tags:
+        - auth
+      summary: Check if user is authenticated
+      description: Tells if a user is authenticated by checking the JWT stored in a HTTP only cookie.
+      responses:
+        "200":
+          description: The answer if the user is authenticated or not. If the user is authenticated, it also returns the userId and the expDate (expiration date) of the JWT.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    example: true
+                  userId:
+                    type: string
+                    format: id
+                    example: "915fe07j7y296e90c9o1p689"
+                  expDate:
+                    type: number
+                    example: 1744931332210
+        "401":
+          description: Invalid token
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
     Error:
@@ -463,6 +1576,3 @@ components:
           type: string
         data: 
           type: object
-
-      
-          

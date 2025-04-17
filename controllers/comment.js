@@ -171,10 +171,6 @@ exports.patchComment = async (req, res, next) => {
         if(!error.statusCode) { error.statusCode = 500 }
         next(error) 
     }
-    
-
-
-
 }
 
 exports.deleteComment = async (req, res, next) => {
