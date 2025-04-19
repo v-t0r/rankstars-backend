@@ -1442,22 +1442,23 @@ paths:
       tags:
         - feed
       summary: Get recent posts
-      description: Get the most recent lists and reviews of all the users.
+      description: Get the most recent lists and reviews from all the users.
       parameters:
         - name: limit
           in: query
           required: false
-          description: The max number of posts retrived. 
+          description: The max number of posts retrieved. 
           schema: 
             type: number
             example: 20
-        - name: skip
+        - name: olderThan
           in: query
           required: false
-          description: The number of posts to skip. 
+          description: The posts retrieved needs to be older than this date. 
           schema: 
-            type: number
-            example: 20
+            type: string
+            format: date
+            example: 2025-02-07T21:51:05.215Z
       responses:
         "200":
           description: An array of reviews and lists
@@ -1472,23 +1473,24 @@ paths:
     get: 
       tags:
         - feed
-      summary: Get user's followings' posts
-      description: Get the most recent lists and reviews of the users that the authenticated user follows. The user needs to be logged in to perform this action.
+      summary: Get user's followings' mmost recent posts
+      description: Get the most recent lists and reviews from the users that the authenticated user follows. The user needs to be logged in to perform this action.
       parameters:
         - name: limit
           in: query
           required: false
-          description: The max number of posts retrived. 
+          description: The max number of posts retrieved. 
           schema: 
             type: number
             example: 20
-        - name: skip
+        - name: olderThan
           in: query
           required: false
-          description: The number of posts to skip. 
+          description: The posts retrieved needs to be older than this date. 
           schema: 
-            type: number
-            example: 20
+            type: string
+            format: date
+            example: 2025-02-07T21:51:05.215Z
       responses:
         "200":
           description: An array of reviews and lists
@@ -1505,23 +1507,24 @@ paths:
     get: 
       tags:
         - feed
-      summary: Get posts based on user's interests
+      summary: Get recent posts based on user's interests
       description: Get the most recent lists and reviews that matches the authenticated user interests. The user needs to be logged in to perform this action.
       parameters:
         - name: limit
           in: query
           required: false
-          description: The max number of posts retrived. 
+          description: The max number of posts retrieved. 
           schema: 
             type: number
             example: 20
-        - name: skip
+        - name: olderThan
           in: query
           required: false
-          description: The number of posts to skip. 
+          description: The posts retrieved needs to be older than this date. 
           schema: 
-            type: number
-            example: 20
+            type: string
+            format: date
+            example: 2025-02-07T21:51:05.215Z
       responses:
         "200":
           description: An array of reviews and lists

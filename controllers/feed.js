@@ -5,10 +5,12 @@ const Review = require("../models/review")
 const List = require("../models/list")
 
 exports.getRecentPosts = async(req, res, next) => {
-    const {limit = 15, skip = 0} = req.query
+    const {limit = 15, olderThan = Date.now()} = req.query
 
     try{
-        const recentReviews = await Review.find()
+        const recentReviews = await Review.find({
+            createdAt: {$lt: olderThan}
+        })
             .populate({
                 path: "author", 
                 select: "_id username profilePicUrl"
@@ -17,10 +19,11 @@ exports.getRecentPosts = async(req, res, next) => {
                 createdAt: -1
             })
             .limit(limit)
-            .skip(skip)
             .lean()
 
-        const recentLists = await List.find()
+        const recentLists = await List.find({
+            "createdAt": {$lt: olderThan} 
+        })
             .populate([
                 {
                     path: "author", 
@@ -35,7 +38,6 @@ exports.getRecentPosts = async(req, res, next) => {
                 createdAt: -1
             })
             .limit(limit)
-            .skip(skip)
             .lean()
  
         const recentPosts = [ 
@@ -56,13 +58,16 @@ exports.getRecentPosts = async(req, res, next) => {
 
 exports.getForYou = async(req, res, next) => {
     const userId = req.userId
-    const {limit = 15, skip = 0} = req.query
+    const {limit = 15, olderThan = Date.now()} = req.query
 
     try{
         const userInterests = (await User.findById(userId)).interests
         //colocar em uma promise all depois
 
-        const recentReviews = await Review.find({type: {$in: userInterests}})
+        const recentReviews = await Review.find({
+            type: {$in: userInterests},
+            createdAt: {$lt: olderThan}
+        })
             .populate({
                 path: "author", 
                 select: "_id username profilePicUrl"
@@ -71,7 +76,6 @@ exports.getForYou = async(req, res, next) => {
                 createdAt: -1
             })
             .limit(limit)
-            .skip(skip)
             .lean()
         // const recentLists = await List.find({type: {$in: userInterests}})
         //     .populate([
@@ -88,7 +92,6 @@ exports.getForYou = async(req, res, next) => {
         //         createdAt: -1
         //     })
         //     .limit(limit)
-        //     .skip(skip)
         //     .lean()
 
         const recentLists = []
@@ -111,13 +114,16 @@ exports.getForYou = async(req, res, next) => {
 
 exports.getFollowingFeed = async(req, res, next) => {
     const userId = req.userId
-    const {limit = 15, skip = 0} = req.query
+    const {limit = 15, olderThan = Date.now()} = req.query
 
     try{
         const followingUsers = (await User.findById(userId)).following
         //colocar em uma promise all depois
 
-        const recentReviews = await Review.find({author: {$in: followingUsers}})
+        const recentReviews = await Review.find({
+            author: {$in: followingUsers},
+            createdAt: {$lt: olderThan}
+        })
             .populate({
                 path: "author", 
                 select: "_id username profilePicUrl"
@@ -126,9 +132,11 @@ exports.getFollowingFeed = async(req, res, next) => {
                 createdAt: -1
             })
             .limit(limit)
-            .skip(skip)
             .lean()
-        const recentLists = await List.find({author: {$in: followingUsers}})
+        const recentLists = await List.find({
+            author: {$in: followingUsers},
+            createdAt: olderThan
+        })
             .populate([
                 {
                     path: "author", 
@@ -143,7 +151,6 @@ exports.getFollowingFeed = async(req, res, next) => {
                 createdAt: -1
             })
             .limit(limit)
-            .skip(skip)
             .lean()
  
         const recentPosts = [ 
