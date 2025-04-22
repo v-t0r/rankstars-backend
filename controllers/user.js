@@ -37,8 +37,6 @@ exports.getAuthenticatedUser = async(req, res, next) => {
 }
 
 exports.getUsers = async (req, res, next) => {
-    const compact = req.query.compact
-    
     fields = [
         "_id", 
         "username",
@@ -54,6 +52,20 @@ exports.getUsers = async (req, res, next) => {
         "createdAt"
     ]
 
+    const {
+        search = "",
+        sortBy = "createdAt", 
+        order = "1",
+        limit = null, 
+        skip = 0,
+        category = null,
+        minDate = new Date(0),
+        maxDate = Date.now(),
+        compact = "false"
+    } = req.query
+
+    const categories = category ? category.split(",") : null
+
     if(compact === "true"){
         fields = [
             "_id", 
@@ -61,10 +73,20 @@ exports.getUsers = async (req, res, next) => {
         ]
     }
 
-    const {search = ""} = req.query
+    const filter = {
+        "username": RegExp(search, "i"),
+        "createdAt": {$gte: minDate, $lte: maxDate},
+        ...(category ? {"interests": {$in: categories}} : {})
+    }
+
+    const options = {
+        sort: {[sortBy]: +order},
+        ...(limit ? {limit: limit} : {}),
+        skip: skip
+    }
 
     try{
-        const users = await User.find({"username": RegExp(search, "i")}, fields)
+        const users = await User.find(filter, fields, options)
         res.status(200).json({users})
     }catch(error){
         next(error)
