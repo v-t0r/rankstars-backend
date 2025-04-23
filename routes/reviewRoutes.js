@@ -10,6 +10,9 @@ const interests_db_name = INTERESTS_LIST.map(interest => interest[0])
 //GET reviews
 router.get("/reviews/", reviewController.getReviews)
 
+//Retorna somente as categorias deste fetch
+router.get("/reviews/categories", reviewController.getReviewsCategories)
+
 //GET review
 router.get("/reviews/:reviewId", reviewController.getReview)
 

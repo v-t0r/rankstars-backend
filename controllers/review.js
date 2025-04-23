@@ -358,6 +358,52 @@ exports.deslikePost = async (req, res, next) => {
 
 }
 
+exports.getReviewsCategories = async (req, res, next) => {
+
+    const {
+        search = "",
+        author = null,
+        minRating = 0,
+        maxRating = 100,
+        minDate = new Date(0),
+        maxDate = Date.now(),
+        category = null,
+    } = req.query
+
+    const categories = category ? category.split(",") : null
+
+    const filter = {
+        ...(search ? {"title": RegExp(search, "i")} : {}),
+        ...(author ? {"author": {$in: author}} : {}),
+        "rating": {$gte: +minRating, $lte: +maxRating},
+        "createdAt": {$gte: new Date(minDate), $lte: new Date(maxDate)},
+        ...(category ? {"type": {$in: categories}} : {})
+    }
+
+    try{
+
+        const categoryNumber = await Review.aggregate([
+            {
+                $match: filter
+            },
+            {
+                $group: {
+                    _id: "$type",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: { count: -1 }
+            }
+        ])
+        
+        res.status(200).json({categories: categoryNumber.map(categoryObj => ({category: categoryObj._id, count: categoryObj.count}))})
+    }catch(error){
+        next(error)
+    }
+
+}
+
 function deleteImage(imagePath){
     const filePath = path.join(__dirname, "..", imagePath)
     fs.unlink(filePath, err => {if(err){console.log("Fail to delete the review's images.")}})
