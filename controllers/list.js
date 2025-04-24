@@ -192,7 +192,6 @@ exports.addReviewToList = async (req, res, next) => {
     session.startTransaction()
 
     try{
-
         const review = await Review.findById(reviewId)
         if(!review){
             const error = new Error("No review with this id.")
@@ -222,6 +221,10 @@ exports.addReviewToList = async (req, res, next) => {
         list.reviews.push(review._id)
         list.reviewsCount += 1
         review.lists.push(list._id)
+
+        if(!list.categories.includes(review.type)){
+            list.categories.push(review.type)
+        }
 
         list.save({session})
         review.save({session})
@@ -270,7 +273,10 @@ exports.removeReviewFromList = async (req, res, next) => {
 
     try{
     
-        const list = await List.findById(listId)
+        const list = await List.findById(listId).populate({
+            path: "reviews",
+            select: "type"
+        })
 
         if(!list){
             const error = new Error("List not found!")
@@ -292,8 +298,15 @@ exports.removeReviewFromList = async (req, res, next) => {
             throw error 
         }
 
+        console.log(list)
+
         list.reviews.pull(reviewId)
         list.reviewsCount -= 1
+
+        if(list.reviews.filter(rw => rw.type === review.type).length === 0){
+            list.categories.pull(review.type)
+        }
+
         review.lists.pull(listId)
 
         await list.save({session})
@@ -370,6 +383,8 @@ exports.patchList = async (req, res, next) => {
         }
 
         const reviewsCount = newReviewList.length
+        
+        newCategories = [...(new Set( (await Review.find({"_id": {$in: newReviewList}}, ["type"])).map(({_id, type}) => type) ) )]
 
         const updatedList = await List.findOneAndUpdate(
             {_id: listId}, 
@@ -377,7 +392,8 @@ exports.patchList = async (req, res, next) => {
                 title: req.body.title, 
                 description: req.body.description,
                 reviews: newReviewList,
-                reviewsCount
+                reviewsCount,
+                categories: newCategories
             }, 
             {new: true}
         )

@@ -13,3 +13,5 @@
     ["videogames", "Video Games"],
     ["other", "Other"],
 ]
+
+exports.INTERESTS_LIST_IDS = this.INTERESTS_LIST.map(([id, string]) => id)

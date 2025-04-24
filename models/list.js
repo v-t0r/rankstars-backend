@@ -1,4 +1,5 @@
 const { Schema, model, startSession } = require("mongoose")
+const {INTEREST_LIST_IDS} = require("../util/constants")
 
 const listSchema = new Schema({
     title: {
@@ -10,16 +11,20 @@ const listSchema = new Schema({
         ref: "User",
         required: true
     },
-    followers: [{
-        type: Schema.Types.ObjectId,
-        ref: "User",
+    followers: {
+        type: [{
+            type: Schema.Types.ObjectId,
+            ref: "User",
+        }],
         default: []
-    }],
-    reviews: [{
-        type: Schema.Types.ObjectId,
-        ref: "Review",
+    },
+    reviews: {
+        type: [{
+            type: Schema.Types.ObjectId,
+            ref: "Review",
+        }],
         default: []
-    }],
+    },
     reviewsCount: {
         type: Number,
         default: 0
@@ -28,11 +33,20 @@ const listSchema = new Schema({
         type: String,
         default: ""
     },
-    comments: [{
-        type: Schema.Types.ObjectId,
-        ref: "Comment",
+    comments: {
+        type: [{
+            type: Schema.Types.ObjectId,
+            ref: "Comment",
+        }],
         default: []
-    }]
+    },
+    categories: {
+        type: [{
+            type: String,
+            enum: INTEREST_LIST_IDS
+        }],
+        default: []
+    }
 }, {timestamps: true})
 
 /** This middleware hook makes shure that when a list is deleted, 

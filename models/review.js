@@ -22,30 +22,37 @@ const reviewSchema = new Schema({
         type: String,
         default: ""
     },
-    likes: [{
-        type: Schema.Types.ObjectId,
-        ref: "User",
+    likes: {
+        type: [{
+            type: Schema.Types.ObjectId,
+            ref: "User",    
+        }],
         default: []
-    }],
+    },
     totalLikes: {
         type: Number,
         default: 0
     },
-    comments: [{
+    comments: {
+        type: [{
         type: Schema.Types.ObjectId,
         ref: "Comment",
+        }],
         default: []
-    }],
-    lists: [{
+    },
+    lists: {
+        type: [{
         type: Schema.Types.ObjectId,
         ref: "List",
+        }],
         default: []
-    }],
-    imagesUrls: [{
+    },
+    imagesUrls: {
+        type: [{
         type: String,
+        }], 
         default: ["images/default-review-pic.jpg"]
-    }]
-    
+    }
 }, {timestamps: true})
 
 reviewSchema.pre("findOneAndDelete", async function (next){
