@@ -11,6 +11,9 @@ router.get("/users", userController.getUsers)
 //GET logged user
 router.get("/users/myuser", isAuth, userController.getAuthenticatedUser)
 
+//GETonly the interests of the users on this fetch
+router.get("/users/interests", userController.getUserInterests)
+
 //GET one user
 router.get("/users/:userId", userController.getUser)
 

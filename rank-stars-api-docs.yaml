@@ -45,10 +45,63 @@ paths:
             type: boolean
         - name: search
           in: query
-          description: Search term to the username
           required: false
           schema:
             type: string
+            example: "Some search"
+        
+        - name: sortBy
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "createdAt"
+            enum: [createdAt, updatedA]
+        
+        - name: order
+          in: query
+          required: false
+          schema: 
+            type: string
+            example: "-1"
+            
+        - name: limit
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "10"
+            
+        - name: skip
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "20"
+                      
+        - name: minDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+            
+        - name: maxDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: interests
+          in: query
+          required: false
+          description: Can receive multiple values separated by comma
+          schema:
+            type: string
+            example: "tvshows,movies,videogames" 
+            
       responses:
         "200":
           description: A list of users
@@ -147,6 +200,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+                
+  /users/interests:
+    get:
+      tags: 
+        - user
+      summary: Get the interests of users
+      description: Get an array with the number of occurrences of each interest in the users matching the specified filters.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "Some search"
+      
+        - name: minDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+            
+        - name: maxDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+            
+        - name: category
+          in: query
+          required: false
+          description: Can receive multiple values separated by comma
+          schema:
+            type: string
+            example: "tvshows,movies,videogames" 
+            
+      responses:
+        "200":
+          description: An array of interests
+        "400":
+          description: Invalid value to query parameter.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"  
 
   
   /users/login:
@@ -321,10 +424,11 @@ paths:
         - name: category
           in: query
           required: false
+          description: Can receive multiple values separated by comma
           schema:
             type: string
             example: "tvshows,movies,videogames" 
-            description: Can receive multiple values separated by comma
+            
             
       responses:
         "200":
@@ -396,13 +500,13 @@ paths:
             format: date
             example: "2024-12-31"
 
-        - name: category
+        - name: categories
           in: query
           required: false
+          description: Can receive multiple values separated by comma
           schema:
             type: string
             example: "tvshows,movies,videogames"
-          description: Can receive multiple values separated by comma
             
       responses:
         "200":
@@ -554,10 +658,11 @@ paths:
         - name: category
           in: query
           required: false
+          description: Can receive multiple values separated by comma
           schema:
             type: string
             example: "tvshows,movies,videogames" 
-            description: Can receive multiple values separated by comma
+            
       responses:
         "200":
           description: An array of reviews
@@ -614,6 +719,78 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+                
+  /reviews/categories:
+    get:
+      tags: 
+        - review
+      summary: Get the categories of reviews
+      description: Get an array with the number of occurrences of each category in the reviews matching the specified filters.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "Some search"
+        
+        - name: author
+          in: query
+          required: false
+          description: Expects the author ID
+          schema: 
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        
+        - name: minRating
+          in: query
+          required: false
+          schema: 
+            type: number
+            example: "60"
+            
+        - name: maxRating
+          in: query
+          required: false
+          schema:
+            type: number
+            example: 100
+      
+        - name: minDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+            
+        - name: maxDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: category
+          in: query
+          required: false
+          description: Can receive multiple values separated by comma
+          schema:
+            type: string
+            example: "tvshows,movies,videogames" 
+            
+      responses:
+        "200":
+          description: An array of categories
+        "400":
+          description: Invalid value to query parameter.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"              
+        
   /reviews/{reviewId}:
     get:
       tags: 
@@ -838,13 +1015,14 @@ paths:
             type: string
             format: date
             example: "2024-12-31"
-        - name: category
+        - name: categories
           in: query
           required: false
+          description: Can receive multiple values separated by comma
           schema:
             type: string
             example: "tvshows,movies,videogames" 
-            description: Can receive multiple values separated by comma
+            
       responses:
         "200":
           description: An array of lists
@@ -889,6 +1067,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+                
+  /list/categories:
+    get:
+      tags: 
+        - list
+      summary: Get the categories of lists
+      description: Get an array with the number of occurrences of each category in the lists matching the specified filters.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "Some search"
+        
+        - name: author
+          in: query
+          required: false
+          description: Expects the author ID
+          schema: 
+            type: string
+            example: "678ec07b6e268a81e2f3a687"
+        
+        - name: minDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+            
+        - name: maxDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: category
+          in: query
+          required: false
+          description: Can receive multiple values separated by comma
+          schema:
+            type: string
+            example: "tvshows,movies,videogames" 
+            
+      responses:
+        "200":
+          description: An array of categories
+        "400":
+          description: Invalid value to query parameter.
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"         
+            
   /lists/{listId}:
     get:
       tags: 

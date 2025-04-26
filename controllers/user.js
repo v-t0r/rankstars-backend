@@ -58,13 +58,13 @@ exports.getUsers = async (req, res, next) => {
         order = "1",
         limit = null, 
         skip = 0,
-        category = null,
+        interests = null,
         minDate = new Date(0),
         maxDate = Date.now(),
         compact = "false"
     } = req.query
 
-    const categories = category ? category.split(",") : null
+    const interestsArray = category ? interests.split(",") : null
 
     if(compact === "true"){
         fields = [
@@ -76,7 +76,7 @@ exports.getUsers = async (req, res, next) => {
     const filter = {
         "username": RegExp(search, "i"),
         "createdAt": {$gte: minDate, $lte: maxDate},
-        ...(category ? {"interests": {$in: categories}} : {})
+        ...(interests ? {"interests": {$in: interestsArray}} : {})
     }
 
     const options = {
@@ -459,6 +459,52 @@ exports.unfollowUser = async (req, res, next) => {
         next(error)
     }
 
+}
+
+exports.getUserInterests = async (req, res, next) => {
+
+    const {
+        search = "",
+        interests = null,
+        minDate = new Date(0),
+        maxDate = Date.now(),
+    } = req.query
+
+    const interestsArray = interests ? interests.split(",") : null
+
+    const filter = {
+        ...(search ? {"username": RegExp(search, "i")} : {}),
+        "createdAt": {$gte: new Date(minDate), $lte: new Date(maxDate)},
+        ...(interests ? {"interests": {$in: interestsArray}} : {})
+    }
+
+    try {
+        const interestsNumber = await User.aggregate([
+            {
+                $match: filter
+            },
+            {
+                $unwind: "$interests"
+            },
+            {
+                $group: {
+                    _id: "$interests",
+                    count: {$sum: 1}
+                }
+            },
+            {
+                $sort: { count: -1 }
+            }
+        ])
+
+        res.status(200).json({
+            interests: interestsNumber
+                .map(interest => ({interest: interest._id, count: interest.count}))
+                .filter(interest => interest.interest !== "") 
+        })
+    }catch(error){
+        next(error)
+    }
 }
 
 function deleteImage(imagePath){

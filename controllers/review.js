@@ -401,7 +401,6 @@ exports.getReviewsCategories = async (req, res, next) => {
     }catch(error){
         next(error)
     }
-
 }
 
 function deleteImage(imagePath){

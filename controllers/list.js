@@ -15,6 +15,7 @@ exports.getLists = async(req, res, next) => {
         "reviews",
         "reviewsCount",
         "description",
+        "categories"
     ]
 
     const {
@@ -25,17 +26,19 @@ exports.getLists = async(req, res, next) => {
         skip = 0,
         minDate = new Date(0),
         maxDate = Date.now(),
-        category = null,
+        categories = null,
         author = null
     } = req.query
 
-    const categories = category ? category.split(",") : null
+    console.log(author)
+
+    const categoriesArray = categories ? categories.split(",") : null
     
     const filter = {
         "title": RegExp(search, "i"),
         ...(author ? {"author": {$in: author}} : {}),
         "createdAt": {$gte: minDate, $lte: maxDate},
-        ...(category ? {"type": {$in: categories}} : {})
+        ...(categories ? {"type": {$in: categoriesArray}} : {})
     }
 
     const options = { 
@@ -71,7 +74,7 @@ exports.getLists = async(req, res, next) => {
     }catch(error){
         next(error)
     }
-} 
+}
 
 exports.getList = async (req, res, next) => {
     const listId = req.params.listId
@@ -522,6 +525,54 @@ exports.unfollowList = async (req, res, next) => {
     }catch(error){
         await session.abortTransaction()
         await session.endSession()
+        next(error)
+    }
+}
+
+exports.getListsCategories = async (req, res, next) => {
+
+    const {
+        search = "",
+        minDate = new Date(0),
+        maxDate = Date.now(),
+        interests = null,
+        author = null
+    } = req.query
+
+    const interestsArray = interests ? interests.split(",") : null
+
+    const filter = {
+        ...(search ? {"username": RegExp(search, "i")} : {}),
+        "createdAt": {$gte: new Date(minDate), $lte: new Date(maxDate)},
+        ...(interests ? {"interests": {$in: interestsArray}} : {}),
+        ...(author ? {"author": new mongoose.Types.ObjectId(`${author}`) } : {})
+    }
+
+    try {
+        const categoriesNumber = await List.aggregate([
+            {
+                $match: filter
+            },
+            {
+                $unwind: "$categories"
+            },
+            {
+                $group: {
+                    _id: "$categories",
+                    count: {$sum: 1}
+                }
+            },
+            {
+                $sort: { count: -1 }
+            }
+        ])
+
+        res.status(200).json({
+            categories: categoriesNumber
+                .map(category => ({category: category._id, count: category.count}))
+                .filter(category => category.category !== "") 
+        })
+    }catch(error){
         next(error)
     }
 }

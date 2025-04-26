@@ -7,6 +7,9 @@ const listController = require("../controllers/list")
 //GEt lists
 router.get("/lists", listController.getLists)
 
+//GET only the categories of the lists on this fetch
+router.get("/lists/categories", listController.getListsCategories)
+
 //GET an especific list
 router.get("/lists/:listId", listController.getList)
 
