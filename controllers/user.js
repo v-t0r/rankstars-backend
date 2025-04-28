@@ -64,7 +64,7 @@ exports.getUsers = async (req, res, next) => {
         compact = "false"
     } = req.query
 
-    const interestsArray = category ? interests.split(",") : null
+    const interestsArray = interests ? interests.split(",") : null
 
     if(compact === "true"){
         fields = [

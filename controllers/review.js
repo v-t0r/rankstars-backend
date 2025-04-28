@@ -6,6 +6,7 @@ const { validationResult } = require("express-validator")
 
 const User = require("../models/user")
 const Review = require("../models/review")
+const { getCategoryName } = require("../util/functions")
 
 exports.getReviews = async(req, res, next) => {
     
@@ -397,7 +398,15 @@ exports.getReviewsCategories = async (req, res, next) => {
             }
         ])
         
-        res.status(200).json({categories: categoryNumber.map(categoryObj => ({category: categoryObj._id, count: categoryObj.count}))})
+        res.status(200).json({
+            categories: categoryNumber.map(categoryObj => {
+                return {
+                    categoryId: categoryObj._id,
+                    categoryName: getCategoryName(categoryObj._id),
+                    count: categoryObj.count
+                }
+            })
+        })
     }catch(error){
         next(error)
     }

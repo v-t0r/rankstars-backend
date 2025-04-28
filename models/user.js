@@ -1,4 +1,5 @@
-const { Schema, model, startSession }  = require("mongoose")
+const { Schema, model }  = require("mongoose")
+const {INTEREST_LIST_IDS} = require("../util/constants")
 
 const userSchema = new Schema({
     username: {
@@ -13,10 +14,13 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
-    interests: [{ 
-        type: String,
+    interests: {
+        type: [{ 
+            type: String,
+            enum: INTEREST_LIST_IDS
+        }],
         default: [] 
-    }],
+    },
     followers: [{
         type: Schema.Types.ObjectId,
         ref: "User",

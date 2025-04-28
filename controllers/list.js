@@ -30,8 +30,6 @@ exports.getLists = async(req, res, next) => {
         author = null
     } = req.query
 
-    console.log(author)
-
     const categoriesArray = categories ? categories.split(",") : null
     
     const filter = {
@@ -301,8 +299,6 @@ exports.removeReviewFromList = async (req, res, next) => {
             throw error 
         }
 
-        console.log(list)
-
         list.reviews.pull(reviewId)
         list.reviewsCount -= 1
 
@@ -542,7 +538,7 @@ exports.getListsCategories = async (req, res, next) => {
     const interestsArray = interests ? interests.split(",") : null
 
     const filter = {
-        ...(search ? {"username": RegExp(search, "i")} : {}),
+        ...(search ? {"title": RegExp(search, "i")} : {}),
         "createdAt": {$gte: new Date(minDate), $lte: new Date(maxDate)},
         ...(interests ? {"interests": {$in: interestsArray}} : {}),
         ...(author ? {"author": new mongoose.Types.ObjectId(`${author}`) } : {})

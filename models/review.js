@@ -1,4 +1,5 @@
 const {Schema, model, startSession} = require("mongoose")
+const {INTEREST_LIST_IDS} = require("../util/constants")
 
 const reviewSchema = new Schema({
     title: {
@@ -12,6 +13,7 @@ const reviewSchema = new Schema({
     },
     type: {
         type: String,
+        enum: INTEREST_LIST_IDS,
         required: true
     },
     rating: {
