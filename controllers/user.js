@@ -7,6 +7,7 @@ const User = require("../models/user")
 const List = require("../models/list")
 const Review = require("../models/review")
 const { validationResult } = require("express-validator")
+const { getCategoryName } = require("../util/functions")
 
 exports.getAuthenticatedUser = async(req, res, next) => {
     const userId =  req.userId
@@ -470,12 +471,9 @@ exports.getUserInterests = async (req, res, next) => {
         maxDate = Date.now(),
     } = req.query
 
-    const interestsArray = interests ? interests.split(",") : null
-
     const filter = {
         ...(search ? {"username": RegExp(search, "i")} : {}),
         "createdAt": {$gte: new Date(minDate), $lte: new Date(maxDate)},
-        ...(interests ? {"interests": {$in: interestsArray}} : {})
     }
 
     try {
@@ -499,7 +497,13 @@ exports.getUserInterests = async (req, res, next) => {
 
         res.status(200).json({
             interests: interestsNumber
-                .map(interest => ({interest: interest._id, count: interest.count}))
+                .map(interest => {
+                    return {
+                        interestId: interest._id,
+                        interestName: getCategoryName(interest._id), 
+                        count: interest.count
+                    }
+                })
                 .filter(interest => interest.interest !== "") 
         })
     }catch(error){

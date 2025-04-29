@@ -4,6 +4,7 @@ const { validationResult } = require("express-validator")
 const User = require("../models/user")
 const Review = require("../models/review")
 const List = require("../models/list")
+const { getCategoryName } = require("../util/functions")
 
 
 exports.getLists = async(req, res, next) => {
@@ -26,17 +27,17 @@ exports.getLists = async(req, res, next) => {
         skip = 0,
         minDate = new Date(0),
         maxDate = Date.now(),
-        categories = null,
+        category = null,
         author = null
     } = req.query
 
-    const categoriesArray = categories ? categories.split(",") : null
+    const categoriesArray = category ? category.split(",") : null
     
     const filter = {
         "title": RegExp(search, "i"),
         ...(author ? {"author": {$in: author}} : {}),
         "createdAt": {$gte: minDate, $lte: maxDate},
-        ...(categories ? {"type": {$in: categoriesArray}} : {})
+        ...(category ? {"categories": {$in: categoriesArray}} : {})
     }
 
     const options = { 
@@ -531,16 +532,12 @@ exports.getListsCategories = async (req, res, next) => {
         search = "",
         minDate = new Date(0),
         maxDate = Date.now(),
-        interests = null,
         author = null
     } = req.query
-
-    const interestsArray = interests ? interests.split(",") : null
 
     const filter = {
         ...(search ? {"title": RegExp(search, "i")} : {}),
         "createdAt": {$gte: new Date(minDate), $lte: new Date(maxDate)},
-        ...(interests ? {"interests": {$in: interestsArray}} : {}),
         ...(author ? {"author": new mongoose.Types.ObjectId(`${author}`) } : {})
     }
 
@@ -565,9 +562,16 @@ exports.getListsCategories = async (req, res, next) => {
 
         res.status(200).json({
             categories: categoriesNumber
-                .map(category => ({category: category._id, count: category.count}))
+                .map(category => {
+                    return {
+                        categoryId: category._id,
+                        categoryName: getCategoryName(category._id), 
+                        count: category.count
+                    }
+            })
                 .filter(category => category.category !== "") 
         })
+        
     }catch(error){
         next(error)
     }

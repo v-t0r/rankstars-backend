@@ -371,14 +371,11 @@ exports.getReviewsCategories = async (req, res, next) => {
         category = null,
     } = req.query
 
-    const categories = category ? category.split(",") : null
-
     const filter = {
         ...(search ? {"title": RegExp(search, "i")} : {}),
         ...(author ? {"author": {$in: author}} : {}),
         "rating": {$gte: +minRating, $lte: +maxRating},
         "createdAt": {$gte: new Date(minDate), $lte: new Date(maxDate)},
-        ...(category ? {"type": {$in: categories}} : {})
     }
 
     try{
