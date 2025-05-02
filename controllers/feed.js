@@ -77,24 +77,26 @@ exports.getForYou = async(req, res, next) => {
             })
             .limit(limit)
             .lean()
-        // const recentLists = await List.find({type: {$in: userInterests}})
-        //     .populate([
-        //         {
-        //             path: "author", 
-        //             select: "_id username profilePicUrl"
-        //         },
-        //         {
-        //             path: "reviews",
-        //             select: "_id, imagesUrls"
-        //         }
-        //     ])
-        //     .sort({
-        //         createdAt: -1
-        //     })
-        //     .limit(limit)
-        //     .lean()
 
-        const recentLists = []
+        const recentLists = await List.find({
+            categories: {$in: userInterests},
+            createdAt: {$lt: olderThan}
+        })
+            .populate([
+                {
+                    path: "author", 
+                    select: "_id username profilePicUrl"
+                },
+                {
+                    path: "reviews",
+                    select: "_id, imagesUrls"
+                }
+            ])
+            .sort({
+                createdAt: -1
+            })
+            .limit(limit)
+            .lean()
  
         const recentPosts = [ 
             ...recentReviews.map(review => ({...review, type: "review"})), 
@@ -135,7 +137,7 @@ exports.getFollowingFeed = async(req, res, next) => {
             .lean()
         const recentLists = await List.find({
             author: {$in: followingUsers},
-            createdAt: olderThan
+            createdAt: {$lt: olderThan}
         })
             .populate([
                 {

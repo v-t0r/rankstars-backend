@@ -82,8 +82,8 @@ exports.getList = async (req, res, next) => {
     const {
         sortBy = null, 
         order = "1", 
-        quantity = null, 
-        offset = 0
+        limit = null, 
+        skip = 0
     } = req.query
 
     try{
@@ -121,8 +121,8 @@ exports.getList = async (req, res, next) => {
             throw error
         }
 
-        if(quantity){
-            list.reviews = list.reviews.splice(offset, quantity)
+        if(limit){
+            list.reviews = list.reviews.splice(skip, limit)
         }
         
         
