@@ -16,7 +16,8 @@ exports.getLists = async(req, res, next) => {
         "reviews",
         "reviewsCount",
         "description",
-        "categories"
+        "categories",
+        "createdAt"
     ]
 
     const {
@@ -32,10 +33,11 @@ exports.getLists = async(req, res, next) => {
     } = req.query
 
     const categoriesArray = category ? category.split(",") : null
+    const authorArray = author ? (author.split(",")).map(author => new mongoose.Types.ObjectId(`${author}`)) : null 
     
     const filter = {
         "title": RegExp(search, "i"),
-        ...(author ? {"author": {$in: author}} : {}),
+        ...(author ? {"author": authorArray} : {}),
         "createdAt": {$gte: minDate, $lte: maxDate},
         ...(category ? {"categories": {$in: categoriesArray}} : {})
     }
@@ -83,7 +85,8 @@ exports.getList = async (req, res, next) => {
         sortBy = null, 
         order = "1", 
         limit = null, 
-        skip = 0
+        skip = 0,
+        summary = false
     } = req.query
 
     try{
@@ -108,6 +111,7 @@ exports.getList = async (req, res, next) => {
             {
                 path: "reviews",
                 ...(sortBy ? {options: {sort: {[sortBy]: +order}}} : {} ),
+                ...(summary ? {select: "_id title rating author" } : {} ),
                 populate : {
                     path: "author",
                     select: "_id username" 
@@ -251,19 +255,26 @@ exports.getReviewsFromList = async (req, res, next) => {
     const populate = req.query.populate
     let list
 
-    if(populate === "true"){
-        list = await List.findById(listId).populate("reviews")
-    }else{
-        list = await List.findById(listId)
+    try{
+        if(populate === "true"){
+            list = await List.findById(listId).populate("reviews")
+        }else{
+            list = await List.findById(listId)
+        }
+    
+        if(!list){
+            const error = new Error("List not found!")
+            error.statusCode = 404
+            throw error
+        }
+    
+        res.json({reviews: list.reviews})
+    }catch(error){
+        if(!error.status){
+            error.status = 500
+        }
+        next(error)
     }
-
-    if(!list){
-        const error = new Error("List not found!")
-        error.statusCode = 404
-        throw error
-    }
-
-    res.json({reviews: list.reviews})
 
 }
 exports.removeReviewFromList = async (req, res, next) => {
@@ -535,10 +546,12 @@ exports.getListsCategories = async (req, res, next) => {
         author = null
     } = req.query
 
+    const authorArray = author ? (author.split(",")).map(author => new mongoose.Types.ObjectId(`${author}`)) : null
+
     const filter = {
         ...(search ? {"title": RegExp(search, "i")} : {}),
         "createdAt": {$gte: new Date(minDate), $lte: new Date(maxDate)},
-        ...(author ? {"author": new mongoose.Types.ObjectId(`${author}`) } : {})
+        ...(author ? {"author": new mongoose.Types.ObjectId(`${authorArray}`) } : {})
     }
 
     try {

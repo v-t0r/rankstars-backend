@@ -36,10 +36,11 @@ exports.getReviews = async(req, res, next) => {
     } = req.query
 
     const categories = category ? category.split(",") : null
+    const authorArray = author ? (author.split(",")).map(author => new mongoose.Types.ObjectId(`${author}`)) : null 
     
     const filter = {
         "title": RegExp(search, "i"),
-        ...(author ? {"author": {$in: author}} : {}),
+        ...(author ? {"author": {$in: authorArray}} : {}),
         "rating": {$gte: minRating, $lte: maxRating},
         "createdAt": {$gte: minDate, $lte: maxDate},
         ...(category ? {"type": {$in: categories}} : {})
@@ -368,12 +369,13 @@ exports.getReviewsCategories = async (req, res, next) => {
         maxRating = 100,
         minDate = new Date(0),
         maxDate = Date.now(),
-        category = null,
     } = req.query
+
+    const authorArray = author ? (author.split(",")).map(author => new mongoose.Types.ObjectId(`${author}`)) : null 
 
     const filter = {
         ...(search ? {"title": RegExp(search, "i")} : {}),
-        ...(author ? {"author": {$in: author}} : {}),
+        ...(author ? {"author": {$in: authorArray}} : {}),
         "rating": {$gte: +minRating, $lte: +maxRating},
         "createdAt": {$gte: new Date(minDate), $lte: new Date(maxDate)},
     }

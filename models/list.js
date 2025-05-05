@@ -49,7 +49,7 @@ const listSchema = new Schema({
     }
 }, {timestamps: true})
 
-/** This middleware hook makes shure that when a list is deleted, 
+/** This middleware hook makes sure that when a list is deleted, 
  * all references to it in users and reviews  is also deleted.
  */
  

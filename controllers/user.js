@@ -214,6 +214,17 @@ exports.getReviewsFromUser = async (req, res, next) => {
 exports.getListsFromUser = async (req, res, next) => {
     const userId = req.params.userId
 
+    fields = [
+        "_id",
+        "title",
+        "author",
+        "reviews",
+        "reviewsCount",
+        "description",
+        "categories",
+        "createdAt"
+    ]
+
     const {
         sortBy = "createdAt", 
         order = "-1",
@@ -229,7 +240,7 @@ exports.getListsFromUser = async (req, res, next) => {
     const filter = {
         "author": userId,
         "createdAt": {$gte: minDate, $lte: maxDate},
-        ...(category ? {"type": {$in: categories}} : {})
+        ...(category ? {"categories": {$in: categories}} : {})
     }
 
     const options = { 
@@ -251,7 +262,7 @@ exports.getListsFromUser = async (req, res, next) => {
             throw error
         }
 
-        const lists = await List.find(filter, null, options).populate([
+        const lists = await List.find(filter, fields, options).populate([
                 {
                     path: "reviews",
                     select: "_id title author imagesUrls",
@@ -466,7 +477,6 @@ exports.getUserInterests = async (req, res, next) => {
 
     const {
         search = "",
-        interests = null,
         minDate = new Date(0),
         maxDate = Date.now(),
     } = req.query
