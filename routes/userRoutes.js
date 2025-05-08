@@ -26,6 +26,17 @@ router.patch("/users", isAuth, [
         }
     }),
     body("username", "Username can't be empty!").optional().trim().notEmpty(),
+    body("status").optional().customSanitizer(value => value.replace(/\r\n|\r/g, "\n")).trim().custom( async(value, {req}) => {        
+        
+        if(value.length > 135){
+            return Promise.reject("The status can't have more than 135 caracters.")
+        }
+        
+        if( value.split("\n").length > 7 ){
+            return Promise.reject("The status can't have more than 7 lines.")
+        } 
+    
+    })
 ], userController.patchMyUser)
 
 //DELETE your own user
