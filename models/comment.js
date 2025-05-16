@@ -28,7 +28,29 @@ const commentSchema = new Schema({
     isEdited: {
         type: Boolean,
         default: false
-    } 
+    },
+    upVotes: {
+        type: [{
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        }],
+        default: []
+    },
+    upVotesCount: {
+        type: Number,
+        default: 0
+    },
+    downVotes: {
+        type: [{
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        }],
+        default: []
+    },
+    downVotesCount: {
+        type: Number,
+        default: 0
+    }
 }, {timestamps: true})
 
 commentSchema.pre("findOneAndDelete", async function (next){

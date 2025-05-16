@@ -196,7 +196,124 @@ exports.deleteComment = async (req, res, next) => {
         res.status(200).json({message: `Comment _id:${commentId} deleted successfully.`})
 
     }catch(error){
+        if(!error.statusCode) { error.statusCode = 500 }
         next(error)
     }
 
 }
+
+exports.addUpVote = async (req, res, next) => {
+    const userId = req.userId
+    const { commentId } = req.params
+
+    try{
+        const comment = await Comment.findById(commentId)
+        
+        if(!comment){
+            const error = new Error("Comment not found!")
+            error.statusCode = 404
+            throw error
+        }
+
+        if(comment.upVotes.includes(userId)){
+            const error = new Error("User already up vote this comment!")
+            error.statusCode = 403
+            throw error
+        }
+
+        comment.upVotes.push(userId)
+        comment.upVotesCount += 1
+
+        if(comment.downVotes.includes(userId)){
+            comment.downVotes.pull(userId)
+            comment.downVotesCount -= 1
+        }
+
+        comment.save()
+    
+        return res.status(200).json({message: "Comment up voted succesfully."})
+    }catch(error){
+        if(!error.statusCode) { error.statusCode = 500 }
+        next(error)
+    }
+}
+
+exports.removeVote = async (req, res, next) => {
+    const userId = req.userId
+    const { commentId } = req.params
+
+    try{
+        const comment = await Comment.findById(commentId)
+        
+        if(!comment){
+            const error = new Error("Comment not found!")
+            error.statusCode = 404
+            throw error
+        }
+
+        const isUpVote = comment.upVotes.includes(userId)
+        const isDownVote = comment.downVotes.includes(userId)
+
+        if( (!isUpVote) && (!isDownVote) ){
+            const error = new Error("User not voted for this comment!")
+            error.statusCode = 403
+            throw error
+        }
+
+        if(isUpVote){
+            comment.upVotes.pull(userId)
+            comment.upVotesCount -= 1
+        }
+
+        if(isDownVote){
+            comment.downVotes.pull(userId)
+            comment.downVotesCount -= 1
+        }
+
+        comment.save()
+    
+        return res.status(200).json({message: "Comment vote removed succesfully."})
+    }catch(error){
+        if(!error.statusCode) { error.statusCode = 500 }
+        next(error)
+    }
+}
+
+exports.addDownVote = async (req, res, next) => {
+    const userId = req.userId
+    const { commentId } = req.params
+
+    try{
+        const comment = await Comment.findById(commentId)
+        
+        if(!comment){
+            const error = new Error("Comment not found!")
+            error.statusCode = 404
+            throw error
+        }
+
+        if(comment.downVotes.includes(userId)){
+            const error = new Error("User already down vote this comment!")
+            error.statusCode = 403
+            throw error
+        }
+
+        comment.downVotes.push(userId)
+        comment.downVotesCount += 1
+
+        if(comment.upVotes.includes(userId)){
+            comment.upVotes.pull(userId)
+            comment.upVotesCount -= 1
+        }
+
+        comment.save()
+    
+        return res.status(200).json({message: "Comment down voted succesfully."})
+    }catch(error){
+        if(!error.statusCode) { error.statusCode = 500 }
+        next(error)
+    }
+}
+
+
+

@@ -21,4 +21,16 @@ router.patch("/comments/:commentId", isAuth, [
 //DELETE comment
 router.delete("/comments/:commentId", isAuth, commentController.deleteComment)
 
+//ADD UP VOTE
+router.post("/comments/:commentId/upvotes", isAuth, commentController.addUpVote)
+
+//REMOVE UP VOTE
+router.delete("/comments/:commentId/upVotes", isAuth, commentController.removeVote)
+
+//ADD DOWN VOTE
+router.post("/comments/:commentId/downvotes", isAuth, commentController.addDownVote)
+
+//REMOVE DOWN VOTE
+router.delete("/comments/:commentId/downVotes", isAuth, commentController.removeVote)
+
 module.exports = router
