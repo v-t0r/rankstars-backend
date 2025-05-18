@@ -3,11 +3,18 @@ const path = require("path")
 const fs = require("fs")
 
 const express = require("express")
+
 const cors = require("cors")
+
 const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
+
 const mongoose = require("mongoose")
+
 const multer = require("multer")
+const multerS3 = require("multer-s3")
+const { s3 } = require("./util/s3")
+
 const swaggerUi = require("swagger-ui-express")
 const yaml = require("yaml")
 
@@ -19,8 +26,6 @@ const commentRoutes = require("./routes/commentRoutes")
 const feedRoutes = require("./routes/feedRoutes")
 
 const app = express()
-
-app.use("/images", express.static(path.join(__dirname, "images")))
 
 //configurando rota de documentaçao
 const docsFile = fs.readFileSync("./rank-stars-api-docs.yaml", "utf8")
@@ -40,12 +45,16 @@ app.use(cors({
 app.use(bodyParser.json())
 app.use(cookieParser())
 
-const fileStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "images")
+const s3Storage = multerS3({
+    s3: s3,
+    bucket: process.env.AWS_S3_BUCKET,
+
+    metadata: (req, file, cb) => {
+        cb(null, {fieldname: file.fieldname})
     },
-    filename: (req, file, cb) => {
-        cb(null, (new Date().toISOString() + "-" + file.originalname).replaceAll(":", "-"))
+    key: (req, file, cb) => {
+        const fileName = (new Date().toISOString() + "-" + file.originalname).replaceAll(":", "-")
+        cb(null, `images/${fileName}`)
     }
 })
 
@@ -62,9 +71,10 @@ const fileFilter = (req, file, cb) => {
 }
 
 app.use(multer({
-    storage: fileStorage,
-    fileFilter: fileFilter}).array("image", 10) //permite até 10 imagens
-)
+    storage: s3Storage,
+    fileFilter: fileFilter
+}).array("image", 10)) //permite até 10 imagens
+
 
 //minhas rotas
 app.use("/api", authRoutes)
@@ -87,7 +97,6 @@ app.use((error, req, res, next) => {
 
     res.status(status).json({message, data})
 })
-
 
 mongoose.connect(`mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@cluster0.teech.mongodb.net/${process.env.MONGODB_DATABASE_NAME}`)
     .then( () =>{

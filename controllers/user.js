@@ -7,7 +7,7 @@ const User = require("../models/user")
 const List = require("../models/list")
 const Review = require("../models/review")
 const { validationResult } = require("express-validator")
-const { getCategoryName } = require("../util/functions")
+const { getCategoryName, deleteImagesOnS3 } = require("../util/functions")
 
 exports.getAuthenticatedUser = async(req, res, next) => {
     const userId =  req.userId
@@ -208,7 +208,6 @@ exports.getReviewsFromUser = async (req, res, next) => {
         }
         next(error)
     }
-
 }
 
 exports.getListsFromUser = async (req, res, next) => {
@@ -333,9 +332,9 @@ exports.patchMyUser = async (req, res, next) => {
         const oldProfilePicture = user.profilePicUrl
         let profilePicUrl = null
         if(!req.body.image && req.files.length > 0){
-            profilePicUrl = req.files[0].path
+            profilePicUrl = req.files[0].key
             if(oldProfilePicture !== "images/default-profile-pic.jpg"){
-                deleteImage(oldProfilePicture)
+                deleteImagesOnS3([oldProfilePicture])
             } 
         }
 
@@ -521,7 +520,7 @@ exports.getUserInterests = async (req, res, next) => {
     }
 }
 
-function deleteImage(imagePath){
-    const filePath = path.join(__dirname, "..", imagePath)
-    fs.unlink(filePath, err => {if(err){console.log("Fail to delete the review's images.")}})
-}
+// function deleteImage(imagePath){
+//     const filePath = path.join(__dirname, "..", imagePath)
+//     fs.unlink(filePath, err => {if(err){console.log("Fail to delete the review's images.")}})
+// }

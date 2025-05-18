@@ -6,7 +6,7 @@ const { validationResult } = require("express-validator")
 
 const User = require("../models/user")
 const Review = require("../models/review")
-const { getCategoryName } = require("../util/functions")
+const { getCategoryName, deleteImagesOnS3 } = require("../util/functions")
 
 exports.getReviews = async(req, res, next) => {
     
@@ -110,7 +110,7 @@ exports.createReview = async (req, res, next) => {
 
     let imagesUrls
     if(req.files?.length > 0){ //verificando as imagens
-        imagesUrls = req.files.map(image => image.path)
+        imagesUrls = req.files.map(image => image.key)
     }else{
         imagesUrls = ["images/default-review-pic.jpg"]
     }
@@ -198,18 +198,13 @@ exports.patchReview = async (req, res, next) => {
             keptImages = typeof req.body.image === "string" ? [req.body.image] : req.body.image
         }
 
-        const deletedImages = oldImages.filter(image => !keptImages.includes(image))
-
-        //deleta as imagens deletadas no frontend
-        deletedImages.forEach(image => {
-            if(image !== "images/default-review-pic.jpg"){
-                deleteImage(image)
-            }
-        })
+        const deletedImages = oldImages.filter(image => !keptImages.includes(image) && (image !== "images/default-review-pic.jpg") )
+        //deleta no S3 as imagens deletadas no frontend
+        deleteImagesOnS3(deletedImages)
 
         let newImages = []
         if(req.files.length > 0){ //tem imagem nova
-            newImages = req.files.map(image => image.path)
+            newImages = req.files.map(image => image.key)
         }
 
         let imagesUrls = [...keptImages, ...newImages]
@@ -255,12 +250,9 @@ exports.deleteReview = async (req, res, next) => {
             throw error
         }
 
-        userReview.imagesUrls.map(image => {
-            if(image !== "images/default-review-pic.jpg"){
-                deleteImage(image)
-            }
-        })
-        
+        imagesToDelete = userReview.imagesUrls.filter(imageUrl => imageUrl !== "images/default-review-pic.jpg")
+        deleteImagesOnS3(imagesToDelete)
+
         await Review.findByIdAndDelete(reviewId)
 
         return res.status(200).json({message: `Review _id:${reviewId} deleted successfully.`})
@@ -410,9 +402,3 @@ exports.getReviewsCategories = async (req, res, next) => {
         next(error)
     }
 }
-
-function deleteImage(imagePath){
-    const filePath = path.join(__dirname, "..", imagePath)
-    fs.unlink(filePath, err => {if(err){console.log("Fail to delete the review's images.")}})
-}
-
