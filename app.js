@@ -27,6 +27,9 @@ const feedRoutes = require("./routes/feedRoutes")
 
 const app = express()
 
+//static do frontend
+app.use(express.static(path.join(__dirname, "client/dist")));
+
 //configurando rota de documentaçao
 const docsFile = fs.readFileSync("./rank-stars-api-docs.yaml", "utf8")
 const docsParsed = yaml.parse(docsFile)
@@ -87,6 +90,11 @@ app.use("/api", feedRoutes)
 app.use("/api", (req, res, next) => {
     res.json("Hello, world! Welcome to the RankStars API!")
 })
+
+//fallback para o frontend
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client/dist", "index.html"));
+});
 
 //rota padrão para erro
 app.use((error, req, res, next) => {
