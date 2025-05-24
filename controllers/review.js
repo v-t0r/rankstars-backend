@@ -200,7 +200,7 @@ exports.patchReview = async (req, res, next) => {
 
         const deletedImages = oldImages.filter(image => !keptImages.includes(image) && (image !== "images/default-review-pic.jpg") )
         //deleta no S3 as imagens deletadas no frontend
-        deleteImagesOnS3(deletedImages)
+        if(deletedImages.length > 0) deleteImagesOnS3(deletedImages)
 
         let newImages = []
         if(req.files.length > 0){ //tem imagem nova
@@ -251,7 +251,7 @@ exports.deleteReview = async (req, res, next) => {
         }
 
         imagesToDelete = userReview.imagesUrls.filter(imageUrl => imageUrl !== "images/default-review-pic.jpg")
-        deleteImagesOnS3(imagesToDelete)
+        if(imagesToDelete.length > 0) deleteImagesOnS3(imagesToDelete)
 
         await Review.findByIdAndDelete(reviewId)
 
@@ -263,7 +263,6 @@ exports.deleteReview = async (req, res, next) => {
         }
         next(error)
     }   
-
 }
 
 exports.likePost = async (req, res, next) => {

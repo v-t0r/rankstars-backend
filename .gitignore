@@ -6,5 +6,5 @@ node_modules/
 logs/
 *.log
 build/
-dist/
+
 images/

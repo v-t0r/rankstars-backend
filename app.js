@@ -87,9 +87,9 @@ app.use("/api", listRoutes)
 app.use("/api", commentRoutes)
 app.use("/api", feedRoutes)
 
-app.use("/api", (req, res, next) => {
-    res.json("Hello, world! Welcome to the RankStars API!")
-})
+// app.use("/api", (req, res, next) => {
+//     res.json("Hello, world! Welcome to the RankStars API!")
+// })
 
 //fallback para o frontend
 app.get("*", (req, res) => {
