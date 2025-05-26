@@ -21,7 +21,12 @@ router.post("/users", [
             }
         }).normalizeEmail(),
 
-    body("password", "Invalid password.").trim().isLength({min: 3}), //montar os requisitos do passwrod depois
+    body("password").trim().custom(async (value, {req}) => {
+        if(value.length < 8) return Promise.reject("Password must have at least 8 characters.")
+        if( !(/[a-z]/.test(value)) ) return Promise.reject("Password must have at least one lowercase letter!")
+        if( !(/[A-Z]/.test(value)) ) return Promise.reject("Password must have at least one uppercase letter!")
+        if( !(/[0-9]/.test(value)) ) return Promise.reject("Password must have at least one number!")
+    }),
 
 ], authController.signupUser)
 
